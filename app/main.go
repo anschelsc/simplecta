@@ -18,12 +18,7 @@ func handleError(w http.ResponseWriter, err error) {
 func init() {
 	http.HandleFunc("/", sender)
 	http.HandleFunc("/feed/", showFeed)
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		err := addFeed(appengine.NewContext(r), `http://xkcd.com/rss.xml`)
-		if err != nil {
-			handleError(w, err)
-		}
-	})
+	http.HandleFunc("/list/", lister)
 }
 
 const pageRaw = `

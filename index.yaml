@@ -10,7 +10,18 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: feed
+  ancestor: yes
+  properties:
+  - name: Title
+
 - kind: item
   ancestor: yes
   properties:
   - name: PubDate
+
+- kind: item
+  ancestor: yes
+  properties:
+  - name: PubDate
+    direction: desc

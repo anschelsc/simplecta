@@ -2,6 +2,7 @@ package app
 
 import (
 	"net/http"
+	"net/url"
 	"html/template"
 
 	"appengine"
@@ -19,17 +20,21 @@ const feedPageRaw = `
 
 func showFeed(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	url := r.URL.RawQuery
-	addFeed(c, url)
-	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
-	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
-	f := new(RSS)
-	err := datastore.Get(c, fk, f)
+	url, err := url.QueryUnescape(r.URL.RawQuery)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	_, err = datastore.NewQuery("item").Ancestor(fk).Order("PubDate").GetAll(c, &f.Items)
+	addFeed(c, url)
+	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
+	f := new(RSS)
+	err = datastore.Get(c, fk, f)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	_, err = datastore.NewQuery("item").Ancestor(fk).Order("-PubDate").GetAll(c, &f.Items)
 	if err != nil {
 		handleError(w, err)
 		return
