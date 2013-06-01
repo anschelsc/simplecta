@@ -31,6 +31,20 @@ func fetchRSS(c appengine.Context, url string) (*RSS, error) {
 	return ret, err
 }
 
+func fetchAtom(c appengine.Context, url string) (*Atom, error) {
+	ret := new(Atom)
+	cl := urlfetch.Client(c)
+	resp, err := cl.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	decoder := xml.NewDecoder(resp.Body)
+	err = decoder.Decode(ret)
+	ret.IsAtom = true
+	return ret, err
+}
+
 func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 	for _, it := range f.Items {
 		if it.GUID == "" {
@@ -59,7 +73,29 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 	return nil
 }
 
-func addFeed(c appengine.Context, url string) error {
+func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
+	for _, it := range f.Entries {
+		var err error
+		it.PubDate, err = time.Parse(time.RFC3339, it.RawPD)
+		if err != nil {
+			return err
+		}
+		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
+		done, err := exists(c, ik)
+		if err != nil {
+			return err
+		}
+		if !done {
+			_, err := datastore.Put(c, ik, &it)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func addRSS(c appengine.Context, url string) error {
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
 	return datastore.RunInTransaction(c, func(c appengine.Context) error {
@@ -69,6 +105,33 @@ func addFeed(c appengine.Context, url string) error {
 		}
 		if !done {
 			f, err := fetchRSS(c, url)
+			if err != nil {
+				return err
+			}
+			_, err = datastore.Put(c, fk, f)
+			if err != nil {
+				return err
+			}
+			err = f.update(c, fk)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		return nil
+	}, nil)
+}
+
+func addAtom(c appengine.Context, url string) error {
+	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
+	return datastore.RunInTransaction(c, func(c appengine.Context) error {
+		done, err := exists(c, fk)
+		if err != nil {
+			return err
+		}
+		if !done {
+			f, err := fetchAtom(c, url)
 			if err != nil {
 				return err
 			}

@@ -25,7 +25,6 @@ func showFeed(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	addFeed(c, url)
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
 	f := new(RSS)

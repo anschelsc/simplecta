@@ -9,6 +9,7 @@ type RSS struct {
 	Link  string `xml:"channel>link"`
 	//Description string `xml:"channel>description"`
 	Items []Item `xml:"channel>item" datastore:"-"`
+	IsAtom bool `xml:"-"`
 }
 
 type Item struct {
