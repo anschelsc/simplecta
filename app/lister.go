@@ -11,7 +11,7 @@ import (
 const listerRaw = `
 <html>
 <body>
-<h1>All Feeds</h1>
+<h1><a href="/all/">All Feeds</a></h1>
 {{range .}}
 <p><a href="/feed/?{{.ID }}">{{.Title}}</a></p>
 {{end}}

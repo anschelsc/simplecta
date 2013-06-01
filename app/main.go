@@ -19,6 +19,7 @@ func init() {
 	http.HandleFunc("/", sender)
 	http.HandleFunc("/feed/", showFeed)
 	http.HandleFunc("/list/", lister)
+	http.HandleFunc("/all/", showAll)
 }
 
 const pageRaw = `
