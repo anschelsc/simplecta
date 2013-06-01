@@ -18,4 +18,5 @@ type Item struct {
 	GUID    string    `xml:"guid" datastore:"-"`
 	PubDate time.Time `xml:"-"`
 	RawPD   string    `xml:"pubDate" datastore:"-"`
+	Read    bool      `xml:"-"`
 }

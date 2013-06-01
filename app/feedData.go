@@ -58,7 +58,7 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 		if err != nil {
 			it.PubDate, err = time.Parse(time.RFC822Z, it.RawPD)
 			if err != nil {
-				return err
+				it.PubDate = time.Now()
 			}
 		}
 		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
@@ -82,7 +82,7 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 		var err error
 		it.PubDate, err = time.Parse(time.RFC3339, it.RawPD)
 		if err != nil {
-			return err
+			it.PubDate = time.Now()
 		}
 		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
 		done, err := exists(c, ik)

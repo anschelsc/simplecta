@@ -16,6 +16,24 @@ indexes:
   - name: Title
 
 - kind: item
+  properties:
+  - name: Read
+  - name: PubDate
+    direction: desc
+
+- kind: item
+  properties:
+  - name: Read !
+  - name: PubDate
+    direction: desc
+
+- kind: item
+  properties:
+  - name: Title
+  - name: PubDate
+    direction: desc
+
+- kind: item
   ancestor: yes
   properties:
   - name: PubDate

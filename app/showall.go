@@ -13,7 +13,7 @@ const showRaw = `
 <body>
 <h1>All Items</h1>
 {{range .}}
-<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="{{.ItemLink}}">{{.ItemTitle}}</a></p>
+<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?{{.Key}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a></p>
 {{end}}
 </body>
 </html>
@@ -22,11 +22,12 @@ const showRaw = `
 type itemInfo struct {
 	FeedID, FeedTitle   string
 	ItemLink, ItemTitle string
+	Key                 string
 }
 
 func showAll(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("item").Order("-PubDate")
+	q := datastore.NewQuery("item").Filter("Read =", false).Order("-PubDate")
 	ic, err := q.Count(c)
 	if err != nil {
 		handleError(w, err)
@@ -48,6 +49,7 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 			FeedID:    k.Parent().StringID(),
 			ItemLink:  it.Link,
 			ItemTitle: it.Title,
+			Key:       k.Encode(),
 		}
 		var f RSS
 		err = datastore.Get(c, k.Parent(), &f)

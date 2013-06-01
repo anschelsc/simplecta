@@ -26,11 +26,11 @@ func ensureAnschel(h http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(w, r, loginURL, http.StatusFound)
 			return
 		}
-		if u.Email == "anschelsc@gmail.com" {
+		if u.Email == "Anschelsc@gmail.com" {
 			h(w, r)
 			return
 		}
-		logoutURL, err := user.LogoutURL(c, r.RequestURI)
+		logoutURL, err := user.LogoutURL(c, "/")
 		if err != nil {
 			handleError(w, err)
 			return
@@ -46,4 +46,5 @@ func init() {
 	http.HandleFunc("/all/", ensureAnschel(showAll))
 	http.HandleFunc("/addAtom/", ensureAnschel(atomAdder))
 	http.HandleFunc("/addRSS/", ensureAnschel(rssAdder))
+	http.HandleFunc("/read/", ensureAnschel(reader))
 }

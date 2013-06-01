@@ -23,4 +23,5 @@ type Entry struct {
 	GUID    string    `xml:"id" datastore:"-"`
 	PubDate time.Time `xml:"-"`
 	RawPD   string    `xml:"updated" datastore:"-"`
+	Read    bool      `xml:"-"`
 }
