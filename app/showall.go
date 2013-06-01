@@ -1,8 +1,8 @@
 package app
 
 import (
-	"net/http"
 	"html/template"
+	"net/http"
 
 	"appengine"
 	"appengine/datastore"
@@ -20,7 +20,7 @@ const showRaw = `
 `
 
 type itemInfo struct {
-	FeedID, FeedTitle string
+	FeedID, FeedTitle   string
 	ItemLink, ItemTitle string
 }
 
@@ -45,8 +45,8 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		toPut := &itemInfo{
-			FeedID: k.Parent().StringID(),
-			ItemLink: it.Link,
+			FeedID:    k.Parent().StringID(),
+			ItemLink:  it.Link,
 			ItemTitle: it.Title,
 		}
 		var f RSS

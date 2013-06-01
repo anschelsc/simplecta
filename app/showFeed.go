@@ -1,9 +1,9 @@
 package app
 
 import (
+	"html/template"
 	"net/http"
 	"net/url"
-	"html/template"
 
 	"appengine"
 	"appengine/datastore"
