@@ -3,6 +3,8 @@ package app
 import (
 	"encoding/xml"
 	"time"
+	"net/http"
+	"net/url"
 
 	"appengine"
 	"appengine/datastore"
@@ -42,6 +44,7 @@ func fetchAtom(c appengine.Context, url string) (*Atom, error) {
 	decoder := xml.NewDecoder(resp.Body)
 	err = decoder.Decode(ret)
 	ret.IsAtom = true
+	ret.Link = ret.XMLLink.Href
 	return ret, err
 }
 
@@ -75,6 +78,7 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 
 func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 	for _, it := range f.Entries {
+		it.Link = it.XMLLink.Href
 		var err error
 		it.PubDate, err = time.Parse(time.RFC3339, it.RawPD)
 		if err != nil {
@@ -147,4 +151,34 @@ func addAtom(c appengine.Context, url string) error {
 		}
 		return nil
 	}, nil)
+}
+
+func atomAdder(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	url, err := url.QueryUnescape(r.URL.RawQuery)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	err = addAtom(c, url)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/feed/?" + r.URL.RawQuery, http.StatusFound)
+}
+
+func rssAdder(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	url, err := url.QueryUnescape(r.URL.RawQuery)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	err = addRSS(c, url)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/feed/?" + r.URL.RawQuery, http.StatusFound)
 }
