@@ -27,7 +27,7 @@ type itemInfo struct {
 
 func showAll(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("item").Filter("Read =", false).Order("-PubDate")
+	q := datastore.NewQuery("item").Filter("Read =", false).Order("PubDate")
 	ic, err := q.Count(c)
 	if err != nil {
 		handleError(w, err)
