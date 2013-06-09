@@ -2,15 +2,15 @@ package app
 
 import (
 	"bytes"
-	"net/http"
-	"fmt"
 	"encoding/xml"
+	"fmt"
+	"net/http"
 
 	"appengine"
 	"appengine/datastore"
 	"appengine/mail"
 	"appengine/urlfetch"
-	//"appengine/user"
+	"appengine/user"
 )
 
 func updateFeed(c appengine.Context, cl *http.Client, fk *datastore.Key) error {
@@ -75,10 +75,10 @@ func updater(w http.ResponseWriter, r *http.Request) {
 		count--
 	}
 	err := mail.Send(c, &mail.Message{
-		Sender: "updates@simplecta.appspot.com",
-		To: []string{"anschelsc@gmail.com"},
+		Sender:  "updates@simplecta.appspot.com",
+		To:      []string{"anschelsc@gmail.com"},
 		Subject: "Errors from simplecta update",
-		Body: buf.String(),
+		Body:    buf.String(),
 	})
 	if err != nil {
 		handleError(w, err)
@@ -86,4 +86,3 @@ func updater(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintln(w, "Done.")
 }
-
