@@ -48,4 +48,5 @@ func init() {
 	http.HandleFunc("/addRSS/", ensureAnschel(rssAdder))
 	http.HandleFunc("/read/", ensureAnschel(reader))
 	http.HandleFunc("/rehash/", ensureAnschel(rehasher))
+	http.HandleFunc("/update/", updater)
 }

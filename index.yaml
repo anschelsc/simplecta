@@ -19,6 +19,11 @@ indexes:
   properties:
   - name: Read
   - name: PubDate
+
+- kind: item
+  properties:
+  - name: Read
+  - name: PubDate
     direction: desc
 
 - kind: item
