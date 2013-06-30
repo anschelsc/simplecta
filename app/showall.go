@@ -10,10 +10,21 @@ import (
 
 const showRaw = `
 <html>
+<script type="text/javascript" src="/static/jquery-1.10.1.min.js"></script>
+<script type="text/javascript">
+	$(function() {
+		$(".ajax_read_link").click(function() {
+			$.get("/markRead/", $(this).data("key"));
+		});
+		$(".ajax_unread_link").click(function() {
+			$.get("/markUnread/", $(this).data("key"));
+		});
+	});
+</script>
 <body>
-<h1>All Items</h1>
+<h1>All Items (<a href="/list/">by feed</a>)</h1>
 {{range .}}
-<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?{{.Key}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a></p>
+<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?{{.Key}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <a class="ajax_read_link" data-key="{{.Key}}">(mark read)</a> <a class="ajax_unread_link" data-key="{{.Key}}">(mark unread) </a></p>
 {{end}}
 </body>
 </html>

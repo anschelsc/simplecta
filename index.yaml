@@ -48,3 +48,9 @@ indexes:
   properties:
   - name: PubDate
     direction: desc
+
+- kind: item
+  ancestor: yes
+  properties:
+  - name: Read
+  - name: PubDate

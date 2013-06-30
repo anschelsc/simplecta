@@ -44,10 +44,12 @@ func updateFeed(c appengine.Context, cl *http.Client, fk *datastore.Key) error {
 
 func updater(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
+	/*
 	if !user.IsAdmin(c) {
 		http.Error(w, "Access denied.", http.StatusUnauthorized)
 		return
 	}
+	*/
 	cl := urlfetch.Client(c)
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	q := datastore.NewQuery("feed").Ancestor(feedRoot).KeysOnly()
@@ -71,11 +73,15 @@ func updater(w http.ResponseWriter, r *http.Request) {
 	}
 	buf := new(bytes.Buffer)
 	for count != 0 {
-		fmt.Fprintln(buf, <-ch)
+		err := <-ch
+		if err != nil {
+			fmt.Fprintln(buf, <-ch)
+		}
 		count--
 	}
+	fmt.Fprintf(buf, "User: %s\n", user.Current(c))
 	err := mail.Send(c, &mail.Message{
-		Sender:  "updates@simplecta.appspot.com",
+		Sender:  "updates@simplecta.appspotmail.com",
 		To:      []string{"anschelsc@gmail.com"},
 		Subject: "Errors from simplecta update",
 		Body:    buf.String(),

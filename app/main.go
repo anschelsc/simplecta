@@ -40,13 +40,15 @@ func ensureAnschel(h http.HandlerFunc) http.HandlerFunc {
 }
 
 func init() {
-	http.HandleFunc("/", ensureAnschel(lister))
+	http.HandleFunc("/", ensureAnschel(showAll))
 	http.HandleFunc("/feed/", ensureAnschel(showFeed))
 	http.HandleFunc("/list/", ensureAnschel(lister))
 	http.HandleFunc("/all/", ensureAnschel(showAll))
 	http.HandleFunc("/addAtom/", ensureAnschel(atomAdder))
 	http.HandleFunc("/addRSS/", ensureAnschel(rssAdder))
 	http.HandleFunc("/read/", ensureAnschel(reader))
+	http.HandleFunc("/markRead/", ensureAnschel(readMarker))
+	http.HandleFunc("/markUnread/", ensureAnschel(unreadMarker))
 	http.HandleFunc("/rehash/", ensureAnschel(rehasher))
 	http.HandleFunc("/update/", updater)
 }
