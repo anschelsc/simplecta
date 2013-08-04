@@ -1,0 +1,4 @@
+cron:
+- description: regular update
+  url: /update/
+  schedule: every 30 minutes
