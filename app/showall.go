@@ -24,7 +24,7 @@ const showRaw = `
 <body>
 <h1>All Items (<a href="/list/">by feed</a>)</h1>
 {{range .}}
-<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?{{.Key}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <a class="ajax_read_link" data-key="{{.Key}}">(mark read)</a> <a class="ajax_unread_link" data-key="{{.Key}}">(mark unread) </a></p>
+<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?{{.Key}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_read_link" data-key="{{.Key}}">mark read</button><button class="ajax_unread_link" data-key="{{.Key}}">mark unread</button></p>
 {{end}}
 </body>
 </html>
