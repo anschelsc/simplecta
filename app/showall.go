@@ -6,6 +6,7 @@ import (
 
 	"appengine"
 	"appengine/datastore"
+	"appengine/user"
 )
 
 const showRaw = `
@@ -22,8 +23,9 @@ const showRaw = `
 	});
 </script>
 <body>
+Logged in as {{.Me}}. <a href="{{.Logout}}">(logout)</a>
 <h1>All Items (<a href="/list/">by feed</a>)</h1>
-{{range .}}
+{{range .Infos}}
 <p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?{{.Key}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_read_link" data-key="{{.Key}}">mark read</button><button class="ajax_unread_link" data-key="{{.Key}}">mark unread</button></p>
 {{end}}
 </body>
@@ -36,9 +38,15 @@ type itemInfo struct {
 	Key                 string
 }
 
+type showAllData struct {
+	Infos []*itemInfo
+	Me string
+	Logout string
+}
+
 func showAll(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("item").Filter("Read =", false).Order("PubDate")
+	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly().Order("PubDate")
 	ic, err := q.Count(c)
 	if err != nil {
 		handleError(w, err)
@@ -47,11 +55,21 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 	infos := make([]*itemInfo, 0, ic)
 	iter := q.Run(c)
 	for {
-		var it Item
-		k, err := iter.Next(&it)
+		sk, err := iter.Next(empty)
 		if err == datastore.Done {
 			break
 		}
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		k, err := datastore.DecodeKey(sk.StringID())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		var it Item
+		err = datastore.Get(c, k, &it)
 		if err != nil {
 			handleError(w, err)
 			return
@@ -76,7 +94,13 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	err = templ.Execute(w, infos)
+	me := user.Current(c).String()
+	logout, err := user.LogoutURL(c, r.URL.String())
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	err = templ.Execute(w, &showAllData{Infos: infos, Me: me, Logout: logout})
 	if err != nil {
 		handleError(w, err)
 		return

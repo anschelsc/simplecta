@@ -54,3 +54,8 @@ indexes:
   properties:
   - name: Read
   - name: PubDate
+
+- kind: subscribedItem
+  ancestor: yes
+  properties:
+  - name: PubDate

@@ -3,9 +3,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-
-	"appengine"
-	"appengine/user"
 )
 
 func handleError(w http.ResponseWriter, err error) {
@@ -13,42 +10,16 @@ func handleError(w http.ResponseWriter, err error) {
 		http.StatusInternalServerError)
 }
 
-func ensureAnschel(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c := appengine.NewContext(r)
-		u := user.Current(c)
-		if u == nil {
-			loginURL, err := user.LoginURL(c, r.RequestURI)
-			if err != nil {
-				handleError(w, err)
-				return
-			}
-			http.Redirect(w, r, loginURL, http.StatusFound)
-			return
-		}
-		if u.Email == "Anschelsc@gmail.com" {
-			h(w, r)
-			return
-		}
-		logoutURL, err := user.LogoutURL(c, "/")
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		http.Redirect(w, r, logoutURL, http.StatusFound)
-	}
-}
-
 func init() {
-	http.HandleFunc("/", ensureAnschel(showAll))
-	http.HandleFunc("/feed/", ensureAnschel(showFeed))
-	http.HandleFunc("/list/", ensureAnschel(lister))
-	http.HandleFunc("/all/", ensureAnschel(showAll))
-	http.HandleFunc("/addAtom/", ensureAnschel(atomAdder))
-	http.HandleFunc("/addRSS/", ensureAnschel(rssAdder))
-	http.HandleFunc("/read/", ensureAnschel(reader))
-	http.HandleFunc("/markRead/", ensureAnschel(readMarker))
-	http.HandleFunc("/markUnread/", ensureAnschel(unreadMarker))
-	http.HandleFunc("/rehash/", ensureAnschel(rehasher))
+	http.HandleFunc("/", showAll)
+	http.HandleFunc("/feed/", showFeed)
+	http.HandleFunc("/list/", lister)
+	http.HandleFunc("/all/", showAll)
+	http.HandleFunc("/addAtom/", atomAdder)
+	http.HandleFunc("/addRSS/", rssAdder)
+	http.HandleFunc("/read/", reader)
+	http.HandleFunc("/markRead/", readMarker)
+	http.HandleFunc("/markUnread/", unreadMarker)
+	http.HandleFunc("/rehash/", rehasher)
 	http.HandleFunc("/update/", updater)
 }

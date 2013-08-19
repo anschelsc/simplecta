@@ -102,7 +102,7 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 func addRSS(c appengine.Context, url string) error {
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
-	return datastore.RunInTransaction(c, func(c appengine.Context) error {
+	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
 		done, err := exists(c, fk)
 		if err != nil {
 			return err
@@ -124,12 +124,16 @@ func addRSS(c appengine.Context, url string) error {
 		}
 		return nil
 	}, nil)
+	if err != nil {
+		return err
+	}
+	return subscribe(c, fk)
 }
 
 func addAtom(c appengine.Context, url string) error {
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
-	return datastore.RunInTransaction(c, func(c appengine.Context) error {
+	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
 		done, err := exists(c, fk)
 		if err != nil {
 			return err
@@ -151,6 +155,10 @@ func addAtom(c appengine.Context, url string) error {
 		}
 		return nil
 	}, nil)
+	if err != nil {
+		return err
+	}
+	return subscribe(c, fk)
 }
 
 func atomAdder(w http.ResponseWriter, r *http.Request) {
