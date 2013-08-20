@@ -19,6 +19,5 @@ func init() {
 	http.HandleFunc("/read/", reader)
 	http.HandleFunc("/markRead/", readMarker)
 	http.HandleFunc("/markUnread/", unreadMarker)
-	http.HandleFunc("/watashiDesu/", watashi)
 	http.HandleFunc("/update/", updater)
 }
