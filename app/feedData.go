@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/xml"
 	"net/http"
-	"net/url"
 	"time"
 
 	"appengine"
@@ -165,30 +164,22 @@ func addAtom(c appengine.Context, url string) error {
 
 func atomAdder(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	url, err := url.QueryUnescape(r.URL.RawQuery)
+	url := r.URL.Query()["url"][0]
+	err := addAtom(c, url)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	err = addAtom(c, url)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	http.Redirect(w, r, "/feed/?"+r.URL.RawQuery, http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func rssAdder(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	url, err := url.QueryUnescape(r.URL.RawQuery)
+	url := r.URL.Query()["url"][0]
+	err := addRSS(c, url)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	err = addRSS(c, url)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	http.Redirect(w, r, "/feed/?"+r.URL.RawQuery, http.StatusFound)
+	http.Redirect(w, r, "/", http.StatusFound)
 }

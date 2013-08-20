@@ -24,6 +24,12 @@ const showRaw = `
 </script>
 <body>
 Logged in as {{.Me}}. <a href="{{.Logout}}">(logout)</a>
+<form action="/addAtom/" method="get">
+Add Atom feed: <input type="text" name="url"> <input type="submit" value="Add">
+</form>
+<form action="/addRSS/" method="get">
+Add RSS feed: <input type="text" name="url"> <input type="submit" value="Add">
+</form>
 <h1>All Items</h1>
 {{range .Infos}}
 <p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_read_link" data-key="{{.Key}}">mark read</button><button class="ajax_unread_link" data-key="{{.Key}}">mark unread</button></p>
