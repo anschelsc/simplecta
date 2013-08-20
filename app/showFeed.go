@@ -12,6 +12,7 @@ import (
 const feedPageRaw = `
 <html>
 <body>
+<a href="/">Home</a>
 <h1><a href="{{.Link}}">{{.Title | html}}</a></h1>
 {{range .Items}}
 <p><a href="{{.Link}}">{{.Title | html}}</a></p>
