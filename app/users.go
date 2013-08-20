@@ -20,11 +20,14 @@ func userKey(c appengine.Context) *datastore.Key {
 	return datastore.NewKey(c, "user", user.Current(c).ID, 0, userRoot)
 }
 
-func subscribe(c appengine.Context, fk *datastore.Key) error {
+func subscribe(c appengine.Context, fk *datastore.Key, populate bool) error {
 	uk := userKey(c)
 	_, err := datastore.Put(c, datastore.NewKey(c, "subscription", uk.Encode(), 0, fk), empty)
 	if err != nil {
 		return err
+	}
+	if !populate {
+		return nil
 	}
 	iter := datastore.NewQuery("item").Ancestor(fk).Order("-PubDate").Limit(10).Run(c)
 	var k *datastore.Key

@@ -129,7 +129,7 @@ func addRSS(c appengine.Context, url string) error {
 	if err != nil {
 		return err
 	}
-	return subscribe(c, fk)
+	return subscribe(c, fk, true)
 }
 
 func addAtom(c appengine.Context, url string) error {
@@ -160,7 +160,7 @@ func addAtom(c appengine.Context, url string) error {
 	if err != nil {
 		return err
 	}
-	return subscribe(c, fk)
+	return subscribe(c, fk, true)
 }
 
 func atomAdder(w http.ResponseWriter, r *http.Request) {

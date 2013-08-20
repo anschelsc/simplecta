@@ -32,19 +32,20 @@ func watashi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, k := range ks {
-		err = subscribe(c, k)
+		err = subscribe(c, k, false)
 		if err != nil {
 			handleError(w, err)
 			return
 		}
 	}
-	ks, err = datastore.NewQuery("item").KeysOnly().GetAll(c, nil)
+	ks, err = datastore.NewQuery("item").Filter("Read =", false).KeysOnly().GetAll(c, nil)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
 	for _, k := range ks {
 		propagate.Call(c, k)
+		fmt.Fprintln(w, k)
 	}
 	fmt.Fprintln(w, "OK!")
 }
