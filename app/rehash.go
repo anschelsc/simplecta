@@ -23,3 +23,28 @@ func rehasher(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintln(w, "OK!")
 }
+
+func watashi(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	ks, err := datastore.NewQuery("feed").KeysOnly().GetAll(c, nil)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	for _, k := range ks {
+		err = subscribe(c, k)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+	}
+	ks, err = datastore.NewQuery("item").KeysOnly().GetAll(c, nil)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	for _, k := range ks {
+		propagate.Call(c, k)
+	}
+	fmt.Fprintln(w, "OK!")
+}

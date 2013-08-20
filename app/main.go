@@ -13,13 +13,12 @@ func handleError(w http.ResponseWriter, err error) {
 func init() {
 	http.HandleFunc("/", showAll)
 	http.HandleFunc("/feed/", showFeed)
-	http.HandleFunc("/list/", lister)
 	http.HandleFunc("/all/", showAll)
 	http.HandleFunc("/addAtom/", atomAdder)
 	http.HandleFunc("/addRSS/", rssAdder)
 	http.HandleFunc("/read/", reader)
 	http.HandleFunc("/markRead/", readMarker)
 	http.HandleFunc("/markUnread/", unreadMarker)
-	http.HandleFunc("/rehash/", rehasher)
+	http.HandleFunc("/watashiDesu/", watashi)
 	http.HandleFunc("/update/", updater)
 }

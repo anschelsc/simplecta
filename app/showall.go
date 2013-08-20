@@ -24,7 +24,7 @@ const showRaw = `
 </script>
 <body>
 Logged in as {{.Me}}. <a href="{{.Logout}}">(logout)</a>
-<h1>All Items (<a href="/list/">by feed</a>)</h1>
+<h1>All Items</h1>
 {{range .Infos}}
 <p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_read_link" data-key="{{.Key}}">mark read</button><button class="ajax_unread_link" data-key="{{.Key}}">mark unread</button></p>
 {{end}}
