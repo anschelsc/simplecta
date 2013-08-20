@@ -6,6 +6,7 @@ import (
 	"appengine"
 	"appengine/datastore"
 	"appengine/user"
+	"appengine/delay"
 )
 
 type subscribedItem struct {
@@ -40,3 +41,28 @@ func subscribe(c appengine.Context, fk *datastore.Key) error {
 	}
 	return nil
 }
+
+var propagate = delay.Func("propagate", func(c appengine.Context, ik *datastore.Key) error {
+	var it Item
+	err := datastore.Get(c, ik, &it)
+	if err != nil {
+		return err
+	}
+	si := subscribedItem{it.PubDate}
+	iter := datastore.NewQuery("subscription").Ancestor(ik.Parent()).KeysOnly().Run(c)
+	var sk *datastore.Key
+	for sk, err = iter.Next(nil); err == nil; sk, err = iter.Next(nil) {
+		uk, err := datastore.DecodeKey(sk.StringID())
+		if err != nil {
+			return err
+		}
+		_, err = datastore.Put(c, datastore.NewKey(c, "subscribedItem", ik.Encode(), 0, uk), &si)
+		if err != nil {
+			return err
+		}
+	}
+	if err != datastore.Done {
+		return err
+	}
+	return nil
+})

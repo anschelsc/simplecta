@@ -8,37 +8,41 @@ import (
 	"appengine/datastore"
 )
 
-func mark(c appengine.Context, raw_key string, read bool) (string, error) {
-	k, err := datastore.DecodeKey(raw_key)
+func mark(c appengine.Context, raw_key string, read bool) error {
+	sk, err := datastore.DecodeKey(raw_key)
 	if err != nil {
-		return "", err
+		return err
+	}
+	if read {
+		return datastore.Delete(c, sk)
+	}
+	ik, err := datastore.DecodeKey(sk.StringID())
+	if err != nil {
+		return err
 	}
 	var it Item
-	err = datastore.Get(c, k, &it)
+	err = datastore.Get(c, ik, &it)
 	if err != nil {
-		return "", err
+		return err
 	}
-	it.Read = read
-	_, err = datastore.Put(c, k, &it)
-	if err != nil {
-		return "", err
-	}
-	return it.Link, nil
+	_, err = datastore.Put(c, sk, &subscribedItem{it.PubDate})
+	return err
 }
 
 func reader(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	link, err := mark(c, r.URL.RawQuery, true)
+	err := mark(c, r.URL.Query()["key"][0], true)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
+	link := r.URL.Query()["link"][0]
 	http.Redirect(w, r, link, http.StatusFound)
 }
 
 func readMarker(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	_, err := mark(c, r.URL.RawQuery, true)
+	err := mark(c, r.URL.RawQuery, true)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -48,7 +52,7 @@ func readMarker(w http.ResponseWriter, r *http.Request) {
 
 func unreadMarker(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	_, err := mark(c, r.URL.RawQuery, false)
+	err := mark(c, r.URL.RawQuery, false)
 	if err != nil {
 		handleError(w, err)
 		return

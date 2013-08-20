@@ -26,7 +26,7 @@ const showRaw = `
 Logged in as {{.Me}}. <a href="{{.Logout}}">(logout)</a>
 <h1>All Items (<a href="/list/">by feed</a>)</h1>
 {{range .Infos}}
-<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?{{.Key}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_read_link" data-key="{{.Key}}">mark read</button><button class="ajax_unread_link" data-key="{{.Key}}">mark unread</button></p>
+<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_read_link" data-key="{{.Key}}">mark read</button><button class="ajax_unread_link" data-key="{{.Key}}">mark unread</button></p>
 {{end}}
 </body>
 </html>
@@ -78,7 +78,7 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 			FeedID:    k.Parent().StringID(),
 			ItemLink:  it.Link,
 			ItemTitle: it.Title,
-			Key:       k.Encode(),
+			Key:       sk.Encode(),
 		}
 		var f RSS
 		err = datastore.Get(c, k.Parent(), &f)

@@ -16,6 +16,8 @@ const feedPageRaw = `
 {{range .Items}}
 <p><a href="{{.Link}}">{{.Title | html}}</a></p>
 {{end}}
+</body>
+</html>
 `
 
 func showFeed(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +35,7 @@ func showFeed(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	_, err = datastore.NewQuery("item").Ancestor(fk).Filter("Read =", false).Order("PubDate").GetAll(c, &f.Items)
+	_, err = datastore.NewQuery("item").Ancestor(fk).Order("-PubDate").GetAll(c, &f.Items)
 	if err != nil {
 		handleError(w, err)
 		return

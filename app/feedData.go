@@ -71,6 +71,7 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 			if err != nil {
 				return err
 			}
+			propagate.Call(c, ik)
 		}
 	}
 	return nil
@@ -94,6 +95,7 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 			if err != nil {
 				return err
 			}
+			propagate.Call(c, ik)
 		}
 	}
 	return nil

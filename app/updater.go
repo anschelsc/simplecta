@@ -44,12 +44,6 @@ func updateFeed(c appengine.Context, cl *http.Client, fk *datastore.Key) error {
 
 func updater(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	/*
-	if !user.IsAdmin(c) {
-		http.Error(w, "Access denied.", http.StatusUnauthorized)
-		return
-	}
-	*/
 	cl := urlfetch.Client(c)
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	q := datastore.NewQuery("feed").Ancestor(feedRoot).KeysOnly()
