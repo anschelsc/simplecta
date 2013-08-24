@@ -14,11 +14,31 @@ const showRaw = `
 <script type="text/javascript" src="/static/jquery-1.10.1.min.js"></script>
 <script type="text/javascript">
 	$(function() {
-		$(".ajax_read_link").click(function() {
-			$.get("/markRead/", $(this).data("key"));
+		$(".ajax_link").click(function() {
+			var button = $(this);
+			var url;
+			var mark = button.data("mark")
+			if (mark === "read") {
+				url = "/markRead/";
+			} else {
+				url = "/markUnread/";
+			}
+			$.get(url, button.data("key"), function() {
+				if (mark === "read") {
+					mark = "unread";
+				} else {
+					mark = "read";
+				}
+				button.text("mark " + mark);
+				button.data("mark", mark)
+			});
 		});
-		$(".ajax_unread_link").click(function() {
-			$.get("/markUnread/", $(this).data("key"));
+		$(".read_link").click(function() {
+			var button = $(this).siblings("button");
+			if (button.data("mark") === "read") {
+				button.text("mark unread");
+				button.data("mark", "unread");
+			}
 		});
 	});
 </script>
@@ -32,7 +52,7 @@ Add RSS feed: <input type="text" name="url"> <input type="submit" value="Add">
 </form>
 <h1>All Items (<a href="/feeds/">view feeds</a>)</h1>
 {{range .Infos}}
-<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_read_link" data-key="{{.Key}}">mark read</button><button class="ajax_unread_link" data-key="{{.Key}}">mark unread</button></p>
+<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></p>
 {{end}}
 </body>
 </html>
