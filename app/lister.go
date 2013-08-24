@@ -14,14 +14,14 @@ const listerRaw = `
 <body>
 <h1>Feeds (<a href="/all/">view items</a>)</h1>
 {{range .}}
-<p><a href="/feed/?{{.ID }}">{{.Title}}</a></p>
+<p><a href="/feed/?{{.ID }}">{{.Title}}</a> <a href="/unsubscribe/?{{.SubID}}">(unsubscribe)</a></p>
 {{end}}
 </body>
 </html>
 `
 
 type feedInfo struct {
-	ID, Title string
+	ID, Title, SubID string
 }
 
 type feedInfos []*feedInfo
@@ -58,7 +58,11 @@ func lister(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 			return
 		}
-		data = append(data, &feedInfo{ID: k.StringID(), Title: f.Title})
+		data = append(data, &feedInfo{
+			ID: k.StringID(),
+			Title: f.Title,
+			SubID: sk.Encode(),
+		})
 	}
 	sort.Sort(data)
 	templ, err := template.New("lister").Parse(listerRaw)

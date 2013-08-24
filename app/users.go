@@ -2,6 +2,7 @@ package app
 
 import (
 	"time"
+	"net/http"
 
 	"appengine"
 	"appengine/datastore"
@@ -73,3 +74,44 @@ var propagate = delay.Func("propagate", func(c appengine.Context, ik *datastore.
 	}
 	return nil
 })
+
+func unsubscriber(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	k, err := datastore.DecodeKey(r.URL.RawQuery)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	err = datastore.Delete(c, k)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	fk := k.Parent()
+	uk, err := datastore.DecodeKey(k.StringID())
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	iter := datastore.NewQuery("subscribedItem").Ancestor(uk).KeysOnly().Run(c)
+	var sik *datastore.Key
+	for sik, err = iter.Next(nil); err == nil; sik, err = iter.Next(nil) {
+		ik, err := datastore.DecodeKey(sik.StringID())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+		if ik.Parent().Equal(fk) {
+			err = datastore.Delete(c, sik)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+		}
+	}
+	if err != datastore.Done {
+		handleError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/feeds/", http.StatusFound)
+}
