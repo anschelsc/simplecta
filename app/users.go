@@ -13,6 +13,10 @@ type subscribedItem struct {
 	PubDate time.Time
 }
 
+type subscription struct {
+	User *datastore.Key
+}
+
 var empty = new(struct{})
 
 func userKey(c appengine.Context) *datastore.Key {
@@ -22,7 +26,7 @@ func userKey(c appengine.Context) *datastore.Key {
 
 func subscribe(c appengine.Context, fk *datastore.Key, populate bool) error {
 	uk := userKey(c)
-	_, err := datastore.Put(c, datastore.NewKey(c, "subscription", uk.Encode(), 0, fk), empty)
+	_, err := datastore.Put(c, datastore.NewKey(c, "subscription", uk.Encode(), 0, fk), &subscription{uk})
 	if err != nil {
 		return err
 	}

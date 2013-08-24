@@ -49,3 +49,22 @@ func watashi(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprintln(w, "OK!")
 }
+
+func convertSubs(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	ks, err := datastore.NewQuery("subscription").KeysOnly().GetAll(c, nil)
+	subs := make([]subscription, len(ks))
+	for i, k := range ks {
+		subs[i].User, err = datastore.DecodeKey(k.StringID())
+		if err != nil {
+			handleError(w, err)
+			return
+		}
+	}
+	_, err = datastore.PutMulti(c, ks, subs)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	fmt.Fprintln(w, "OK!")
+}

@@ -3,6 +3,7 @@ package app
 import (
 	"html/template"
 	"net/http"
+	"sort"
 
 	"appengine"
 	"appengine/datastore"
@@ -23,20 +24,27 @@ type feedInfo struct {
 	ID, Title string
 }
 
+type feedInfos []*feedInfo
+
+func (f feedInfos) Len() int { return len(f) }
+func (f feedInfos) Less(i, j int) bool { return f[i].Title < f[j].Title }
+func (f feedInfos) Swap(i, j int) { f[i], f[j] = f[j], f[i] }
+
 func lister(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
-	q := datastore.NewQuery("feed").Ancestor(feedRoot).Order("Title")
+	uk := userKey(c)
+	q := datastore.NewQuery("subscription").Ancestor(feedRoot).Filter("User =", uk).KeysOnly()
 	fc, err := q.Count(c)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	data := make([]*feedInfo, 0, fc)
+	data := make(feedInfos, 0, fc)
 	iter := q.Run(c)
 	for {
 		var f RSS
-		k, err := iter.Next(&f)
+		sk, err := iter.Next(nil)
 		if err == datastore.Done {
 			break
 		}
@@ -44,8 +52,15 @@ func lister(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 			return
 		}
+		k := sk.Parent()
+		err = datastore.Get(c, k, &f)
+		if err != nil {
+			handleError(w, err)
+			return
+		}
 		data = append(data, &feedInfo{ID: k.StringID(), Title: f.Title})
 	}
+	sort.Sort(data)
 	templ, err := template.New("lister").Parse(listerRaw)
 	if err != nil {
 		handleError(w, err)
