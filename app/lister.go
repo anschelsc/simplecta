@@ -26,9 +26,9 @@ type feedInfo struct {
 
 type feedInfos []*feedInfo
 
-func (f feedInfos) Len() int { return len(f) }
+func (f feedInfos) Len() int           { return len(f) }
 func (f feedInfos) Less(i, j int) bool { return f[i].Title < f[j].Title }
-func (f feedInfos) Swap(i, j int) { f[i], f[j] = f[j], f[i] }
+func (f feedInfos) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
 
 func lister(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
@@ -59,7 +59,7 @@ func lister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		data = append(data, &feedInfo{
-			ID: k.StringID(),
+			ID:    k.StringID(),
 			Title: f.Title,
 			SubID: sk.Encode(),
 		})

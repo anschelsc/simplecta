@@ -45,8 +45,8 @@ type itemInfo struct {
 }
 
 type showAllData struct {
-	Infos []*itemInfo
-	Me string
+	Infos  []*itemInfo
+	Me     string
 	Logout string
 }
 
