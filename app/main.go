@@ -22,5 +22,4 @@ func init() {
 	http.HandleFunc("/markUnread/", unreadMarker)
 	http.HandleFunc("/update/", updater)
 
-	http.HandleFunc("/convertSubs/", convertSubs)
 }
