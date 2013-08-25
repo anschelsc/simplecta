@@ -12,7 +12,14 @@ import (
 const listerRaw = `
 <html>
 <body>
-<h1>Feeds (<a href="/all/">view items</a>)</h1>
+<a href="/all/">Home</a>
+<form action="/addAtom/" method="get">
+Add Atom feed: <input type="text" name="url"> <input type="submit" value="Add">
+</form>
+<form action="/addRSS/" method="get">
+Add RSS feed: <input type="text" name="url"> <input type="submit" value="Add">
+</form>
+<h1>Feeds</h1>
 {{range .}}
 <p><a href="/feed/?{{.ID }}">{{.Title}}</a> <a href="/unsubscribe/?{{.SubID}}">(unsubscribe)</a></p>
 {{end}}

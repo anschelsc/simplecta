@@ -170,7 +170,7 @@ func atomAdder(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, "/feeds/", http.StatusFound)
 }
 
 func rssAdder(w http.ResponseWriter, r *http.Request) {
@@ -181,5 +181,5 @@ func rssAdder(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	http.Redirect(w, r, "/feeds/", http.StatusFound)
 }

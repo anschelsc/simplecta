@@ -43,14 +43,9 @@ const showRaw = `
 	});
 </script>
 <body>
-Logged in as {{.Me}}. <a href="{{.Logout}}">(logout)</a>
-<form action="/addAtom/" method="get">
-Add Atom feed: <input type="text" name="url"> <input type="submit" value="Add">
-</form>
-<form action="/addRSS/" method="get">
-Add RSS feed: <input type="text" name="url"> <input type="submit" value="Add">
-</form>
-<h1>All Items (<a href="/feeds/">view feeds</a>)</h1>
+Logged in as {{.Me}}. <a href="{{.Logout}}">Logout</a> <br>
+<a href="/feeds/">Manage subscriptions</a>
+<h1>All Items</h1>
 {{range .Infos}}
 <p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></p>
 {{end}}
