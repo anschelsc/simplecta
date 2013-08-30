@@ -33,7 +33,7 @@ const showRaw = `
 				button.data("mark", mark)
 			});
 		});
-		$(".read_link").click(function() {
+		$(".read_link").bind("mouseup", function() {
 			var button = $(this).siblings("button");
 			if (button.data("mark") === "read") {
 				button.text("mark unread");
