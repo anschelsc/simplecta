@@ -51,8 +51,8 @@ Logged in as {{.Me}}. <a href="{{.Logout}}">Logout</a> <br>
 <a href="/feeds/">Manage subscriptions</a>
 <h1>All Items</h1>
 {{range .Infos}}
-<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a><br>
-<a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></p>
+<div><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a>
+<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></div></div>
 {{end}}
 </body>
 </html>
