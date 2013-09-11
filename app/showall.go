@@ -42,12 +42,17 @@ const showRaw = `
 		});
 	});
 </script>
+<head>
+<title>Simplecta!</title>
+<link rel="stylesheet" href="/static/main.css">
+</head>
 <body>
 Logged in as {{.Me}}. <a href="{{.Logout}}">Logout</a> <br>
 <a href="/feeds/">Manage subscriptions</a>
 <h1>All Items</h1>
 {{range .Infos}}
-<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a> <a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></p>
+<p><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a><br>
+<a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></p>
 {{end}}
 </body>
 </html>
