@@ -1,3 +1,17 @@
-.item_links {
-	margin-left: 20px;
-}
+body {color:#000; font-size:100%;} /* necessary so other size changes have correct effect */
+
+a.admin:link {color:#4B80F2; text-decoration:none;} 
+a.admin:visited {color:#4B80F2; text-decoration:none;} 
+a.admin:hover {color:#99B9FF; text-decoration:none;}  
+
+a.feedlink {font-size:1.0em; color:#A68700; text-decoration:none;}
+
+a.read_link:link {font-size:1.1em; color:#4B80F2; text-decoration:none;}
+a.read_link:visited {font-size:1.1em; color:#AAA; text-decoration:none;}
+a.read_link:hover {font-size:1.1em; color:#99B9FF; text-decoration:none;} 
+
+a.peek:link {font-size:1.1em; color:#099; text-decoration:none;}
+a.peek:visited {font-size:1.1em; color:#099; text-decoration:none;}
+a.peek:hover {font-size:1.1em; color:#0BB; text-decoration:none;} 
+
+.item {margin-top:15px;}

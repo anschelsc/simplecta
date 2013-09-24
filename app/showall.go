@@ -47,12 +47,16 @@ const showRaw = `
 <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
-Logged in as {{.Me}}. <a href="{{.Logout}}">Logout</a> <br>
-<a href="/feeds/">Manage subscriptions</a>
-<h1>All Items</h1>
+{{.Me}}
+  <a class="admin" href="{{.Logout}}">log out</a> |
+  <a class="admin" href="/feeds/">manage subscriptions</a>
+<br>
+
+<p>
+
 {{range .Infos}}
-<div><a href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a>
-<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a href="{{.ItemLink}}">(keep unread)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></div></div>
+<div class="item"><a class="feedlink" href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a>
+<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a class="peek" href="{{.ItemLink}}">(peek)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></div></div>
 {{end}}
 </body>
 </html>
