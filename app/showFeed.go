@@ -11,11 +11,14 @@ import (
 
 const feedPageRaw = `
 <html>
+<head>
+  <link rel="stylesheet" href="/static/main.css">
+</head>
 <body>
-<a href="/">Home</a>
-<h1><a href="{{.Link}}">{{.Title | html}}</a></h1>
+<a class="admin" href="/">home</a> | <a class="admin" href="/feeds/">manage subscriptions</a>
+<p><a class="largefeedlink" href="{{.Link}}">{{.Title | html}}</a></p>
 {{range .Items}}
-<p><a href="{{.Link}}">{{.Title | html}}</a></p>
+<a class="read_link" href="{{.Link}}">{{.Title | html}}</a><br>
 {{end}}
 </body>
 </html>
