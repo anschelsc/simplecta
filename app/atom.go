@@ -1,7 +1,5 @@
 package app
 
-// comment
-
 import (
 	"time"
 )
