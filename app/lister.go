@@ -11,17 +11,33 @@ import (
 
 const listerRaw = `
 <html>
+<head>
+  <link rel="stylesheet" href="/static/main.css">
+</head>
 <body>
-<a href="/all/">Home</a>
-<form action="/addAtom/" method="get">
-Add Atom feed: <input type="text" name="url"> <input type="submit" value="Add">
+<a class="admin" href="/all/">home</a>
+<p>
+
+<form class="newfeed" action="/addAtom/" method="get">
+  <fieldset>
+    <legend>New Atom feed</legend>
+    <input type="text" name="url"> <input type="submit" value="Subscribe">
+  </fieldset>
 </form>
-<form action="/addRSS/" method="get">
-Add RSS feed: <input type="text" name="url"> <input type="submit" value="Add">
+
+<form class="newfeed" action="/addRSS/" method="get">
+  <fieldset>
+    <legend>New RSS feed</legend>
+    <input type="text" name="url"> <input type="submit" value="Subscribe">
+  </fieldset>
 </form>
-<h1>Feeds</h1>
+<p>
+
 {{range .}}
-<p><a href="/feed/?{{.ID }}">{{.Title}}</a> <a href="/unsubscribe/?{{.SubID}}">(unsubscribe)</a></p>
+
+
+
+<a class="largefeedlink" href="/feed/?{{.ID }}">{{.Title}}</a> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)<br>
 {{end}}
 </body>
 </html>
