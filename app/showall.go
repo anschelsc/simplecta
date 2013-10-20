@@ -43,7 +43,7 @@ const showRaw = `
 	});
 </script>
 <head>
-<title>Complexcta!</title>
+<title>Simplecta!</title>
 <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
