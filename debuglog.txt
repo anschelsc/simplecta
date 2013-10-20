@@ -1,0 +1,7 @@
+SIMPLECTA DEBUG LOG
+-------------------
+
+10/20/13
+-- Quick fixed, stopped simplecta from sending too many queries to the datasource.
+-- Added a counter in showall.go to limit the # of rss posts being queried.
+-- Will look into alternatives and a way to contain the amount of data stored. 1GB global storage limit on free GAE accounts.

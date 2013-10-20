@@ -43,7 +43,7 @@ const showRaw = `
 	});
 </script>
 <head>
-<title>Simplecta!</title>
+<title>Complexcta!</title>
 <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
@@ -84,7 +84,12 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 	}
 	infos := make([]*itemInfo, 0, ic)
 	iter := q.Run(c)
-	for {
+	count := 0			//Counter to prevent iter from requesting too many datasource request.
+	for {				
+		count++
+		if count >=101 { //I've limited the count to the first 100 post that it can find.
+			break		 //Will keep looking into alternatives for handling massive amounts of rss feeds.
+		}
 		sk, err := iter.Next(empty)
 		if err == datastore.Done {
 			break
