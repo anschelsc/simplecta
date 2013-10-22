@@ -76,7 +76,9 @@ type showAllData struct {
 
 func showAll(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly().Order("PubDate")
+	// The limit of 100 keeps the page load time down to something reasonable.
+	// In the future there should be a "### items remaining _next_" link somewhere.
+	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly().Order("PubDate").Limit(100)
 	ic, err := q.Count(c)
 	if err != nil {
 		handleError(w, err)
@@ -84,12 +86,7 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 	}
 	infos := make([]*itemInfo, 0, ic)
 	iter := q.Run(c)
-	count := 0			//Counter to prevent iter from requesting too many datasource request.
-	for {				
-		count++
-		if count >=101 { //I've limited the count to the first 100 post that it can find.
-			break		 //Will keep looking into alternatives for handling massive amounts of rss feeds.
-		}
+	for {
 		sk, err := iter.Next(empty)
 		if err == datastore.Done {
 			break
