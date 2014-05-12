@@ -55,7 +55,7 @@ const showRaw = `
 <p>
 
 {{range .Infos}}
-<div class="item"><a class="feedlink" href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a>
+<div class="item"><span class="feedlink">{{.FeedTitle}}</span>
 <div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a class="peek" href="{{.ItemLink}}">(peek)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></div></div>
 {{end}}
 </body>

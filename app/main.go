@@ -12,7 +12,6 @@ func handleError(w http.ResponseWriter, err error) {
 
 func init() {
 	http.HandleFunc("/", showAll)
-	http.HandleFunc("/feed/", showFeed)
 	http.HandleFunc("/all/", showAll)
 	http.HandleFunc("/feeds/", lister)
 	http.HandleFunc("/addAtom/", atomAdder)

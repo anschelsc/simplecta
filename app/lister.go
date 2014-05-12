@@ -37,14 +37,14 @@ const listerRaw = `
 
 
 
-<a class="largefeedlink" href="/feed/?{{.ID }}">{{.Title}}</a> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)<br>
+<span class="largefeedlink">{{.Title}}</span> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)<br>
 {{end}}
 </body>
 </html>
 `
 
 type feedInfo struct {
-	ID, Title, SubID string
+	Title, SubID string
 }
 
 type feedInfos []*feedInfo
@@ -82,7 +82,6 @@ func lister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		data = append(data, &feedInfo{
-			ID:    k.StringID(),
 			Title: f.Title,
 			SubID: sk.Encode(),
 		})
