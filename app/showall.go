@@ -11,7 +11,7 @@ import (
 
 const showRaw = `
 <html>
-<script type="text/javascript" src="/static/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="/static/jquery-1.11.1.min.js"></script>
 <script type="text/javascript">
 	$(function() {
 		$(".ajax_link").click(function() {
