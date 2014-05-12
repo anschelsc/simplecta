@@ -16,6 +16,6 @@ a.peek:link {font-size:1.1em; color:#099; text-decoration:none;}
 a.peek:visited {font-size:1.1em; color:#099; text-decoration:none;}
 a.peek:hover {font-size:1.1em; color:#0BB; text-decoration:none;} 
 
-.item {font-size:1em; margin-top:15px;}
+.item {margin-top:15px;}
 
 form.newfeed {width:30em}
