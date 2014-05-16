@@ -1,0 +1,31 @@
+<html>
+<head>
+{{template "head"}}
+</head>
+<body>
+<a class="admin" href="/all/">home</a>
+<p>
+
+<form class="newfeed" action="/addAtom/" method="get">
+  <fieldset>
+    <legend>New Atom feed</legend>
+    <input type="text" name="url"> <input type="submit" value="Subscribe">
+  </fieldset>
+</form>
+
+<form class="newfeed" action="/addRSS/" method="get">
+  <fieldset>
+    <legend>New RSS feed</legend>
+    <input type="text" name="url"> <input type="submit" value="Subscribe">
+  </fieldset>
+</form>
+<p>
+
+{{range .}}
+
+
+
+<span class="largefeedlink">{{.Title}}</span> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)<br>
+{{end}}
+</body>
+</html>

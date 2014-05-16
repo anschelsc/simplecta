@@ -9,39 +9,7 @@ import (
 	"appengine/datastore"
 )
 
-const listerRaw = `
-<html>
-<head>
-  <link rel="stylesheet" href="/static/main.css">
-</head>
-<body>
-<a class="admin" href="/all/">home</a>
-<p>
-
-<form class="newfeed" action="/addAtom/" method="get">
-  <fieldset>
-    <legend>New Atom feed</legend>
-    <input type="text" name="url"> <input type="submit" value="Subscribe">
-  </fieldset>
-</form>
-
-<form class="newfeed" action="/addRSS/" method="get">
-  <fieldset>
-    <legend>New RSS feed</legend>
-    <input type="text" name="url"> <input type="submit" value="Subscribe">
-  </fieldset>
-</form>
-<p>
-
-{{range .}}
-
-
-
-<span class="largefeedlink">{{.Title}}</span> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)<br>
-{{end}}
-</body>
-</html>
-`
+const tLister = "templates/lister"
 
 type feedInfo struct {
 	Title, SubID string
@@ -87,7 +55,7 @@ func lister(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	sort.Sort(data)
-	templ, err := template.New("lister").Parse(listerRaw)
+	templ, err := template.ParseFiles(tLister, tHead)
 	if err != nil {
 		handleError(w, err)
 		return
