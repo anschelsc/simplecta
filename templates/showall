@@ -1,0 +1,20 @@
+<html>
+<head>
+{{template "head"}}
+<script type="text/javascript" src="/static/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="/static/showall.js"></script>
+</head>
+<body>
+{{.Me}}
+  <a class="admin" href="{{.Logout}}">log out</a> |
+  <a class="admin" href="/feeds/">manage subscriptions</a>
+<br>
+
+<p>
+
+{{range .Infos}}
+<div class="item"><span class="feedlink">{{.FeedTitle}}</span>
+<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a class="peek" href="{{.ItemLink}}">(peek)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></div></div>
+{{end}}
+</body>
+</html>
