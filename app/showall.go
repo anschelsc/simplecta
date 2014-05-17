@@ -1,9 +1,9 @@
 package app
 
 import (
+	"code.google.com/p/go-uuid/uuid"
 	"html/template"
 	"net/http"
-	"code.google.com/p/go-uuid/uuid"
 
 	"appengine"
 	"appengine/datastore"

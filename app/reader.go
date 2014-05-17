@@ -9,7 +9,7 @@ import (
 )
 
 type alert struct {
-	Ind string
+	Ind  string
 	Read bool
 }
 

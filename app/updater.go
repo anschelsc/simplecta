@@ -11,7 +11,7 @@ import (
 	"appengine/urlfetch"
 )
 
-var updateFeed = delay.Func("updateFeed", func (c appengine.Context, fk *datastore.Key) error {
+var updateFeed = delay.Func("updateFeed", func(c appengine.Context, fk *datastore.Key) error {
 	cl := urlfetch.Client(c)
 	resp, err := cl.Get(fk.StringID())
 	if err != nil {
