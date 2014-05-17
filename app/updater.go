@@ -45,17 +45,49 @@ func updater(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	q := datastore.NewQuery("feed").Ancestor(feedRoot).KeysOnly()
+	cu, err := q.Run(c).Cursor()
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	updateBatch.Call(c, cu.String())
+	fmt.Fprintln(w, "Dispatched.")
+}
+
+var (
+	updateBatch *delay.Function
+)
+
+func init() {
+	updateBatch = delay.Func("updateBatch", ubFunc)
+}
+
+func ubFunc(c appengine.Context, cuS string) error {
+	cu, err := datastore.DecodeCursor(cuS)
+	if err != nil {
+		return err
+	}
+	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+	q := datastore.NewQuery("feed").Ancestor(feedRoot).KeysOnly().Start(cu)
 	iter := q.Run(c)
-	for {
+	done := false
+	for i := 0; i < 100; i++ {
 		fk, err := iter.Next(c)
 		if err == datastore.Done {
+			done = true
 			break
 		}
 		if err != nil {
-			handleError(w, err)
-			return
+			return err
 		}
 		updateFeed.Call(c, fk)
 	}
-	fmt.Fprintln(w, "Dispatched.")
+	if !done {
+		cu, err = iter.Cursor()
+		if err != nil {
+			return err
+		}
+		updateBatch.Call(c, cu.String())
+	}
+	return nil
 }
