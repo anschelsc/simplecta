@@ -1,7 +1,8 @@
 <html>
-<head>
+<head data-client={{.Client}}>
 {{template "head"}}
 <script type="text/javascript" src="/static/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="/_ah/channel/jsapi"></script>
 <script type="text/javascript" src="/static/showall.js"></script>
 </head>
 <body>
@@ -14,9 +15,10 @@
 
 <p>
 
-{{range .Infos}}
+{{$client := .Client}}
+{{range $index, $item := .Infos}}
 <div class="item"><span class="feedlink">{{.FeedTitle}}</span>
-<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a class="peek" href="{{.ItemLink}}">(peek)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></div></div>
+<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}&index={{$index}}&client={{$client}}">{{.ItemTitle}}</a> <a class="peek" href="{{.ItemLink}}">(peek)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}" data-index="{{$index}}" data-client="{{$client}}">mark read</button></div></div>
 {{end}}
 </body>
 </html>

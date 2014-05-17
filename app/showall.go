@@ -3,6 +3,7 @@ package app
 import (
 	"html/template"
 	"net/http"
+	"code.google.com/p/go-uuid/uuid"
 
 	"appengine"
 	"appengine/datastore"
@@ -24,6 +25,7 @@ type showAllData struct {
 	Infos  []*itemInfo
 	Me     string
 	Logout string
+	Client string
 }
 
 func showAll(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +86,8 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	err = templ.Execute(w, &showAllData{Infos: infos, Me: me, Logout: logout})
+	client := uuid.New()
+	err = templ.Execute(w, &showAllData{Infos: infos, Me: me, Logout: logout, Client: client})
 	if err != nil {
 		handleError(w, err)
 		return

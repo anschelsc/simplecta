@@ -21,5 +21,6 @@ func init() {
 	http.HandleFunc("/markUnread/", unreadMarker)
 	http.HandleFunc("/unsubscribe/", unsubscriber)
 	http.HandleFunc("/update/", updater)
+	http.HandleFunc("/getToken/", getToken)
 
 }
