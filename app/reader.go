@@ -21,6 +21,15 @@ func markAlert(c appengine.Context, raw_key string, read bool, client, ind strin
 	return channel.SendJSON(c, client, &alert{Ind: ind, Read: read})
 }
 
+func markAllRead(c appengine.Context) error {
+	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly()
+	keys, err := q.GetAll(c, nil)
+	if err != nil {
+		return err
+	}
+	return datastore.DeleteMulti(c, keys)
+}
+
 func mark(c appengine.Context, raw_key string, read bool) error {
 	sk, err := datastore.DecodeKey(raw_key)
 	if err != nil {
@@ -64,4 +73,13 @@ func wrMark(w http.ResponseWriter, r *http.Request, read bool) {
 	if err != nil {
 		handleError(w, err)
 	}
+}
+
+func allMarker(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	err := markAllRead(c)
+	if err != nil {
+		handleError(w, err)
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
 }

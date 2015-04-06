@@ -19,6 +19,7 @@ func init() {
 	http.HandleFunc("/read/", reader)
 	http.HandleFunc("/markRead/", readMarker)
 	http.HandleFunc("/markUnread/", unreadMarker)
+	http.HandleFunc("/markAll/", allMarker)
 	http.HandleFunc("/unsubscribe/", unsubscriber)
 	http.HandleFunc("/update/", updater)
 	http.HandleFunc("/getToken/", getToken)

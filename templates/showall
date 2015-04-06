@@ -10,7 +10,8 @@
 {{.Me}}
   <a class="admin" href="{{.Logout}}">log out</a> |
   <a class="admin" href="/feeds/">manage subscriptions</a> |
-  <a class="admin" href="http://github.com/anschelsc/simplecta">fork me on github</a>
+  <a class="admin" href="http://github.com/anschelsc/simplecta">fork me on github</a> |
+  <a class="admin" href="/markAll/">mark everything read</a> (not reversible)
 <br>
 
 <p>
