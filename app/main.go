@@ -22,7 +22,8 @@ func init() {
 	http.HandleFunc("/unsubscribe/", unsubscriber)
 	http.HandleFunc("/update/", updater)
 	http.HandleFunc("/getToken/", getToken)
-	http.HandleFunc("/vanity/", vanity)
-	http.HandleFunc("/cleanup/", cleanup)
+	http.HandleFunc("/admin/vanity/", vanity)
+	http.HandleFunc("/admin/cleanup/", cleanup)
+	http.HandleFunc("/admin/cleaninfo/", cleanInfo)
 
 }

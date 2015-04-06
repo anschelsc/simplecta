@@ -20,11 +20,7 @@ handlers:
   script: _go_app
   login: admin
 
-- url: /vanity/
-  script: _go_app
-  login: admin
-
-- url: /cleanup/
+- url: /admin/.*
   script: _go_app
   login: admin
 
