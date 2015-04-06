@@ -60,6 +60,9 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 				it.PubDate = time.Now()
 			}
 		}
+		if it.PubDate.Year() < 1990 { // Stupid Internet
+			it.PubDate = time.Now()
+		}
 		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
 		done, err := exists(c, ik)
 		if err != nil {
@@ -81,7 +84,7 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 		it.Link = it.XMLLink.Href
 		var err error
 		it.PubDate, err = time.Parse(time.RFC3339, it.RawPD)
-		if err != nil {
+		if err != nil || it.PubDate.Year() < 1990 {
 			it.PubDate = time.Now()
 		}
 		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
