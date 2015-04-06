@@ -1,10 +1,10 @@
 package app
 
 import (
-	"time"
 	"errors"
-	"net/http"
 	"fmt"
+	"net/http"
+	"time"
 
 	"appengine"
 	"appengine/datastore"
@@ -28,7 +28,7 @@ func logUser(c appengine.Context) error {
 
 func vanity(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	since := time.Now().Add(-30*24*time.Hour)
+	since := time.Now().Add(-30 * 24 * time.Hour)
 	q := datastore.NewQuery("userLog").Filter("Time>", since).Order("-Time")
 	count, err := q.Count(c)
 	if err != nil {
