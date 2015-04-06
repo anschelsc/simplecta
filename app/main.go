@@ -23,5 +23,6 @@ func init() {
 	http.HandleFunc("/update/", updater)
 	http.HandleFunc("/getToken/", getToken)
 	http.HandleFunc("/vanity/", vanity)
+	http.HandleFunc("/cleanup/", cleanup)
 
 }
