@@ -30,6 +30,10 @@ type showAllData struct {
 
 func showAll(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
+	if err := logUser(c); err != nil {
+		handleError(w, err)
+		return
+	}
 	// The limit of 100 keeps the page load time down to something reasonable.
 	// In the future there should be a "### items remaining _next_" link somewhere.
 	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly().Order("PubDate").Limit(100)

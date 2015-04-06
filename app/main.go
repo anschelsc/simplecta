@@ -22,5 +22,6 @@ func init() {
 	http.HandleFunc("/unsubscribe/", unsubscriber)
 	http.HandleFunc("/update/", updater)
 	http.HandleFunc("/getToken/", getToken)
+	http.HandleFunc("/vanity/", vanity)
 
 }
