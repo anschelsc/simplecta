@@ -27,6 +27,7 @@ func logUser(c appengine.Context) error {
 }
 
 func vanity(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
 	c := appengine.NewContext(r)
 	since := time.Now().Add(-30 * 24 * time.Hour)
 	q := datastore.NewQuery("userLog").Filter("Time>", since).Order("-Time")
