@@ -34,20 +34,18 @@ func subscribe(c appengine.Context, fk *datastore.Key, populate bool) error {
 	if !populate {
 		return nil
 	}
-	iter := datastore.NewQuery("item").Ancestor(fk).Order("-PubDate").Limit(10).Run(c)
-	var k *datastore.Key
-	var it Item
-	for k, err = iter.Next(&it); err == nil; k, err = iter.Next(&it) {
-		si := subscribedItem{it.PubDate}
-		_, err = datastore.Put(c, datastore.NewKey(c, "subscribedItem", k.Encode(), 0, uk), &si)
-		if err != nil {
-			return err
-		}
+	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+	recentKey := datastore.NewKey(c, "recent", fk.StringID(), 0, feedRoot)
+	var re Recent
+	err = datastore.Get(c, recentKey, &re)
+	if err == datastore.ErrNoSuchEntity {
+		return nil
 	}
-	if err != datastore.Done {
+	if err != nil {
 		return err
 	}
-	return nil
+	_, err = datastore.Put(c, datastore.NewKey(c, "subscribedItem", re.Item.Encode(), 0, uk), &subscribedItem{re.PubDate})
+	return err
 }
 
 var propagate = delay.Func("propagate", func(c appengine.Context, ik *datastore.Key) error {

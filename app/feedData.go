@@ -47,7 +47,14 @@ func fetchAtom(c appengine.Context, url string) (*Atom, error) {
 	return ret, err
 }
 
+type Recent struct {
+	Item *datastore.Key
+	PubDate time.Time
+}
+
 func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
+	var recentDate time.Time // Zero value is very long ago
+	var recentItem *datastore.Key
 	for _, it := range f.Items {
 		if it.GUID == "" {
 			it.GUID = it.Link
@@ -75,11 +82,25 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 			}
 			propagate.Call(c, ik)
 		}
+		if it.PubDate.After(recentDate) {
+			recentItem = ik
+			recentDate = it.PubDate
+		}
+	}
+	if recentItem != nil {
+		feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+		recentKey := datastore.NewKey(c, "recent", fk.StringID(), 0, feedRoot)
+		_, err := datastore.Put(c, recentKey, &Recent{recentItem, recentDate})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
+	var recentDate time.Time // Zero value is very long ago
+	var recentItem *datastore.Key
 	for _, it := range f.Entries {
 		it.Link = it.XMLLink.Href
 		var err error
@@ -98,6 +119,18 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 				return err
 			}
 			propagate.Call(c, ik)
+		}
+		if it.PubDate.After(recentDate) {
+			recentItem = ik
+			recentDate = it.PubDate
+		}
+	}
+	if recentItem != nil {
+		feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+		recentKey := datastore.NewKey(c, "recent", fk.StringID(), 0, feedRoot)
+		_, err := datastore.Put(c, recentKey, &Recent{recentItem, recentDate})
+		if err != nil {
+			return err
 		}
 	}
 	return nil

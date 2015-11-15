@@ -15,12 +15,6 @@ indexes:
   properties:
   - name: Title
 
-- kind: item
-  ancestor: yes
-  properties:
-  - name: PubDate
-    direction: desc
-
 - kind: subscribedItem
   ancestor: yes
   properties:
