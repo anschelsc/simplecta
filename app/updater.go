@@ -30,13 +30,13 @@ var updateFeed = delay.Func("updateFeed", func(c appengine.Context, fk *datastor
 		if err != nil {
 			return err
 		}
-		return afeed.update(c, fk)
+		return afeed.update(c, fk, true)
 	} else {
 		err = decoder.Decode(&rfeed)
 		if err != nil {
 			return err
 		}
-		return rfeed.update(c, fk)
+		return rfeed.update(c, fk, true)
 	}
 	panic("unreachable")
 })

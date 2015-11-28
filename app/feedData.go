@@ -61,7 +61,7 @@ type Recent struct {
 	PubDate time.Time
 }
 
-func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
+func (f *RSS) update(c appengine.Context, fk *datastore.Key, doProp bool) error {
 	var recentDate time.Time // Zero value is very long ago
 	var recentItem *datastore.Key
 	for _, it := range f.Items {
@@ -89,7 +89,9 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 			if err != nil {
 				return err
 			}
-			propagate.Call(c, ik)
+			if doProp {
+				propagate.Call(c, ik)
+			}
 		}
 		if it.PubDate.After(recentDate) {
 			recentItem = ik
@@ -107,7 +109,7 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 	return nil
 }
 
-func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
+func (f *Atom) update(c appengine.Context, fk *datastore.Key, doProp bool) error {
 	var recentDate time.Time // Zero value is very long ago
 	var recentItem *datastore.Key
 	for _, it := range f.Entries {
@@ -127,7 +129,9 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 			if err != nil {
 				return err
 			}
-			propagate.Call(c, ik)
+			if doProp {
+				propagate.Call(c, ik)
+			}
 		}
 		if it.PubDate.After(recentDate) {
 			recentItem = ik
@@ -148,30 +152,25 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 func addRSS(c appengine.Context, url string) error {
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
-	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		done, err := exists(c, fk)
+	// NB: We might "add" the feed more than once, but this is idempotent,
+	// and we avoid transactions.
+	done, err := exists(c, fk)
+	if err != nil {
+		return err
+	}
+	if !done {
+		f, err := fetchRSS(c, url)
 		if err != nil {
 			return err
 		}
-		if !done {
-			f, err := fetchRSS(c, url)
-			if err != nil {
-				return err
-			}
-			_, err = datastore.Put(c, fk, f)
-			if err != nil {
-				return err
-			}
-			err = f.update(c, fk)
-			if err != nil {
-				return err
-			}
-			return nil
+		_, err = datastore.Put(c, fk, f)
+		if err != nil {
+			return err
 		}
-		return nil
-	}, nil)
-	if err != nil {
-		return err
+		err = f.update(c, fk, false)
+		if err != nil {
+			return err
+		}
 	}
 	return subscribe(c, fk, true)
 }
@@ -179,30 +178,23 @@ func addRSS(c appengine.Context, url string) error {
 func addAtom(c appengine.Context, url string) error {
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
-	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		done, err := exists(c, fk)
+	done, err := exists(c, fk)
+	if err != nil {
+		return err
+	}
+	if !done {
+		f, err := fetchAtom(c, url)
 		if err != nil {
 			return err
 		}
-		if !done {
-			f, err := fetchAtom(c, url)
-			if err != nil {
-				return err
-			}
-			_, err = datastore.Put(c, fk, f)
-			if err != nil {
-				return err
-			}
-			err = f.update(c, fk)
-			if err != nil {
-				return err
-			}
-			return nil
+		_, err = datastore.Put(c, fk, f)
+		if err != nil {
+			return err
 		}
-		return nil
-	}, nil)
-	if err != nil {
-		return err
+		err = f.update(c, fk, false)
+		if err != nil {
+			return err
+		}
 	}
 	return subscribe(c, fk, true)
 }
