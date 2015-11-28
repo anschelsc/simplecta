@@ -83,7 +83,7 @@ func lister(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	err = templ.Execute(w, &struct{
+	err = templ.Execute(w, &struct {
 		Token string
 		Feeds feedInfos
 	}{base64.URLEncoding.EncodeToString(token), feeds})

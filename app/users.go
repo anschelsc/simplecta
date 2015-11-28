@@ -129,7 +129,7 @@ func setUserToken(c appengine.Context, token []byte) error {
 	if err != nil {
 		return err
 	}
-	_ = memcache.Set(c, &memcache.Item{Key: uid+"_token", Value: token})
+	_ = memcache.Set(c, &memcache.Item{Key: uid + "_token", Value: token})
 	// Don't check the error on memcache.Set; if it didn't work, oh well
 	return nil
 }
