@@ -55,7 +55,7 @@ func fetchAtom(c appengine.Context, url string) (*Atom, error) {
 }
 
 type Recent struct {
-	Item *datastore.Key
+	Item    *datastore.Key
 	PubDate time.Time
 }
 
