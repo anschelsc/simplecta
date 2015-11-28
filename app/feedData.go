@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/xml"
+	"errors"
 	"net/http"
 	"time"
 
@@ -29,6 +30,9 @@ func fetchRSS(c appengine.Context, url string) (*RSS, error) {
 	defer resp.Body.Close()
 	decoder := xml.NewDecoder(resp.Body)
 	err = decoder.Decode(ret)
+	if err == nil && ret.Title == "" {
+		return nil, errors.New("Not an RSS feed.")
+	}
 	return ret, err
 }
 
@@ -44,6 +48,9 @@ func fetchAtom(c appengine.Context, url string) (*Atom, error) {
 	err = decoder.Decode(ret)
 	ret.IsAtom = true
 	ret.Link = ret.XMLLink.Href
+	if err == nil && ret.Title == "" {
+		return nil, errors.New("Not an Atom feed.")
+	}
 	return ret, err
 }
 
