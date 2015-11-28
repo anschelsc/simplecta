@@ -10,6 +10,7 @@
   <fieldset>
     <legend>New Atom feed</legend>
     <input type="text" name="url"> <input type="submit" value="Subscribe">
+    <input type="hidden" name="token" value="{{.Token}}">
   </fieldset>
 </form>
 
@@ -17,11 +18,12 @@
   <fieldset>
     <legend>New RSS feed</legend>
     <input type="text" name="url"> <input type="submit" value="Subscribe">
+    <input type="hidden" name="token" value="{{.Token}}">
   </fieldset>
 </form>
 <p>
 
-{{range .}}
+{{range .Feeds}}
 
 
 

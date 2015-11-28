@@ -1,6 +1,8 @@
 package app
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"html/template"
 	"net/http"
 	"sort"
@@ -21,6 +23,17 @@ func (f feedInfos) Len() int           { return len(f) }
 func (f feedInfos) Less(i, j int) bool { return f[i].Title < f[j].Title }
 func (f feedInfos) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
 
+func randBytes(size int) ([]byte, error) {
+	bs := make([]byte, size)
+	_, err := rand.Read(bs)
+	if err != nil {
+		return nil, err
+	}
+	return bs, nil
+}
+
+const tokenSize = 16
+
 func lister(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
@@ -31,7 +44,7 @@ func lister(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	data := make(feedInfos, 0, fc)
+	feeds := make(feedInfos, 0, fc)
 	iter := q.Run(c)
 	for {
 		var f RSS
@@ -49,18 +62,31 @@ func lister(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 			return
 		}
-		data = append(data, &feedInfo{
+		feeds = append(feeds, &feedInfo{
 			Title: f.Title,
 			SubID: sk.Encode(),
 		})
 	}
-	sort.Sort(data)
+	sort.Sort(feeds)
+	token, err := randBytes(tokenSize)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	err = setUserToken(c, token)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
 	templ, err := template.ParseFiles(tLister, tHead)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	err = templ.Execute(w, data)
+	err = templ.Execute(w, &struct{
+		Token string
+		Feeds feedInfos
+	}{base64.URLEncoding.EncodeToString(token), feeds})
 	if err != nil {
 		handleError(w, err)
 		return

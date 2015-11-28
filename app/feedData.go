@@ -1,9 +1,11 @@
 package app
 
 import (
+	"encoding/base64"
 	"encoding/xml"
 	"errors"
 	"net/http"
+	"net/url"
 	"time"
 
 	"appengine"
@@ -205,10 +207,28 @@ func addAtom(c appengine.Context, url string) error {
 	return subscribe(c, fk, true)
 }
 
+func checkURL(c appengine.Context, vals url.Values) error {
+	slice, ok := vals["token"]
+	if !ok {
+		return errors.New("No token provided.")
+	}
+	token, err := base64.URLEncoding.DecodeString(slice[0])
+	if err != nil {
+		return err
+	}
+	return checkUserToken(c, token)
+}
+
 func atomAdder(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	url := r.URL.Query()["url"][0]
-	err := addAtom(c, url)
+	vals := r.URL.Query()
+	err := checkURL(c, vals)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	url := vals["url"][0]
+	err = addAtom(c, url)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -218,8 +238,14 @@ func atomAdder(w http.ResponseWriter, r *http.Request) {
 
 func rssAdder(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	url := r.URL.Query()["url"][0]
-	err := addRSS(c, url)
+	vals := r.URL.Query()
+	err := checkURL(c, vals)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	url := vals["url"][0]
+	err = addRSS(c, url)
 	if err != nil {
 		handleError(w, err)
 		return
