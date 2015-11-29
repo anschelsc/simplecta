@@ -14,7 +14,7 @@ import (
 const tLister = "templates/lister"
 
 type feedInfo struct {
-	Title, SubID string
+	Title, SubID, URL string
 }
 
 type feedInfos []*feedInfo
@@ -65,6 +65,7 @@ func lister(w http.ResponseWriter, r *http.Request) {
 		feeds = append(feeds, &feedInfo{
 			Title: f.Title,
 			SubID: sk.Encode(),
+			URL: k.StringID(),
 		})
 	}
 	sort.Sort(feeds)
