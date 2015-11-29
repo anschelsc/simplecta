@@ -1,8 +1,6 @@
 <html>
 <head>
 {{template "head"}}
-<script type="text/javascript" src="/static/jquery-1.11.1.min.js"></script>
-<script type="text/javascript" src="/static/lister.js"></script>
 </head>
 <body>
 <a class="admin" href="/all/">home</a>
@@ -29,7 +27,7 @@
 
 
 
-<span class="largefeedlink" title="{{.URL}}">{{.Title}}</span> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)
+<span class="largefeedlink">{{.Title}}</span> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)
 <br>
 <span class="feedURL">{{.URL}}</span>
 <br>
