@@ -1,6 +1,7 @@
 package app
 
 import (
+	"code.google.com/p/go-uuid/uuid"
 	"html/template"
 	"net/http"
 
@@ -9,58 +10,10 @@ import (
 	"appengine/user"
 )
 
-const showRaw = `
-<html>
-<script type="text/javascript" src="/static/jquery-1.10.1.min.js"></script>
-<script type="text/javascript">
-	$(function() {
-		$(".ajax_link").click(function() {
-			var button = $(this);
-			var url;
-			var mark = button.data("mark")
-			if (mark === "read") {
-				url = "/markRead/";
-			} else {
-				url = "/markUnread/";
-			}
-			$.get(url, button.data("key"), function() {
-				if (mark === "read") {
-					mark = "unread";
-				} else {
-					mark = "read";
-				}
-				button.text("mark " + mark);
-				button.data("mark", mark)
-			});
-		});
-		$(".read_link").bind("mouseup", function() {
-			var button = $(this).siblings("button");
-			if (button.data("mark") === "read") {
-				button.text("mark unread");
-				button.data("mark", "unread");
-			}
-		});
-	});
-</script>
-<head>
-<title>Simplecta!</title>
-<link rel="stylesheet" href="/static/main.css">
-</head>
-<body>
-{{.Me}}
-  <a class="admin" href="{{.Logout}}">log out</a> |
-  <a class="admin" href="/feeds/">manage subscriptions</a>
-<br>
-
-<p>
-
-{{range .Infos}}
-<div class="item"><a class="feedlink" href="/feed/?{{.FeedID}}">{{.FeedTitle}}</a>
-<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}">{{.ItemTitle}}</a> <a class="peek" href="{{.ItemLink}}">(peek)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}">mark read</button></div></div>
-{{end}}
-</body>
-</html>
-`
+const (
+	tFile = "templates/showall"
+	tHead = "templates/head"
+)
 
 type itemInfo struct {
 	FeedID, FeedTitle   string
@@ -72,11 +25,18 @@ type showAllData struct {
 	Infos  []*itemInfo
 	Me     string
 	Logout string
+	Client string
 }
 
 func showAll(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly().Order("PubDate")
+	if err := logUser(c); err != nil {
+		handleError(w, err)
+		return
+	}
+	// The limit of 100 keeps the page load time down to something reasonable.
+	// In the future there should be a "### items remaining _next_" link somewhere.
+	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly().Order("PubDate").Limit(100)
 	ic, err := q.Count(c)
 	if err != nil {
 		handleError(w, err)
@@ -119,7 +79,7 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 		toPut.FeedTitle = f.Title
 		infos = append(infos, toPut)
 	}
-	templ, err := template.New("all").Parse(showRaw)
+	templ, err := template.ParseFiles(tFile, tHead)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -130,7 +90,8 @@ func showAll(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	err = templ.Execute(w, &showAllData{Infos: infos, Me: me, Logout: logout})
+	client := uuid.New()
+	err = templ.Execute(w, &showAllData{Infos: infos, Me: me, Logout: logout, Client: client})
 	if err != nil {
 		handleError(w, err)
 		return

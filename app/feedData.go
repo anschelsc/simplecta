@@ -1,8 +1,11 @@
 package app
 
 import (
+	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"net/http"
+	"net/url"
 	"time"
 
 	"appengine"
@@ -29,6 +32,9 @@ func fetchRSS(c appengine.Context, url string) (*RSS, error) {
 	defer resp.Body.Close()
 	decoder := xml.NewDecoder(resp.Body)
 	err = decoder.Decode(ret)
+	if err == nil && ret.Title == "" {
+		return nil, errors.New("Not an RSS feed.")
+	}
 	return ret, err
 }
 
@@ -44,10 +50,20 @@ func fetchAtom(c appengine.Context, url string) (*Atom, error) {
 	err = decoder.Decode(ret)
 	ret.IsAtom = true
 	ret.Link = ret.XMLLink.Href
+	if err == nil && ret.Title == "" {
+		return nil, errors.New("Not an Atom feed.")
+	}
 	return ret, err
 }
 
-func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
+type Recent struct {
+	Item    *datastore.Key
+	PubDate time.Time
+}
+
+func (f *RSS) update(c appengine.Context, fk *datastore.Key, doProp bool) error {
+	var recentDate time.Time // Zero value is very long ago
+	var recentItem *datastore.Key
 	for _, it := range f.Items {
 		if it.GUID == "" {
 			it.GUID = it.Link
@@ -60,28 +76,7 @@ func (f *RSS) update(c appengine.Context, fk *datastore.Key) error {
 				it.PubDate = time.Now()
 			}
 		}
-		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
-		done, err := exists(c, ik)
-		if err != nil {
-			return err
-		}
-		if !done {
-			_, err := datastore.Put(c, ik, &it)
-			if err != nil {
-				return err
-			}
-			propagate.Call(c, ik)
-		}
-	}
-	return nil
-}
-
-func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
-	for _, it := range f.Entries {
-		it.Link = it.XMLLink.Href
-		var err error
-		it.PubDate, err = time.Parse(time.RFC3339, it.RawPD)
-		if err != nil {
+		if it.PubDate.Year() < 1990 { // Stupid Internet
 			it.PubDate = time.Now()
 		}
 		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
@@ -94,7 +89,61 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 			if err != nil {
 				return err
 			}
-			propagate.Call(c, ik)
+			if doProp {
+				propagate.Call(c, ik)
+			}
+		}
+		if it.PubDate.After(recentDate) {
+			recentItem = ik
+			recentDate = it.PubDate
+		}
+	}
+	if recentItem != nil {
+		feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+		recentKey := datastore.NewKey(c, "recent", fk.StringID(), 0, feedRoot)
+		_, err := datastore.Put(c, recentKey, &Recent{recentItem, recentDate})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (f *Atom) update(c appengine.Context, fk *datastore.Key, doProp bool) error {
+	var recentDate time.Time // Zero value is very long ago
+	var recentItem *datastore.Key
+	for _, it := range f.Entries {
+		it.Link = it.XMLLink.Href
+		var err error
+		it.PubDate, err = time.Parse(time.RFC3339, it.RawPD)
+		if err != nil || it.PubDate.Year() < 1990 {
+			it.PubDate = time.Now()
+		}
+		ik := datastore.NewKey(c, "item", it.GUID, 0, fk)
+		done, err := exists(c, ik)
+		if err != nil {
+			return err
+		}
+		if !done {
+			_, err := datastore.Put(c, ik, &it)
+			if err != nil {
+				return err
+			}
+			if doProp {
+				propagate.Call(c, ik)
+			}
+		}
+		if it.PubDate.After(recentDate) {
+			recentItem = ik
+			recentDate = it.PubDate
+		}
+	}
+	if recentItem != nil {
+		feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+		recentKey := datastore.NewKey(c, "recent", fk.StringID(), 0, feedRoot)
+		_, err := datastore.Put(c, recentKey, &Recent{recentItem, recentDate})
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -103,30 +152,25 @@ func (f *Atom) update(c appengine.Context, fk *datastore.Key) error {
 func addRSS(c appengine.Context, url string) error {
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
-	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		done, err := exists(c, fk)
+	// NB: We might "add" the feed more than once, but this is idempotent,
+	// and we avoid transactions.
+	done, err := exists(c, fk)
+	if err != nil {
+		return err
+	}
+	if !done {
+		f, err := fetchRSS(c, url)
 		if err != nil {
 			return err
 		}
-		if !done {
-			f, err := fetchRSS(c, url)
-			if err != nil {
-				return err
-			}
-			_, err = datastore.Put(c, fk, f)
-			if err != nil {
-				return err
-			}
-			err = f.update(c, fk)
-			if err != nil {
-				return err
-			}
-			return nil
+		_, err = datastore.Put(c, fk, f)
+		if err != nil {
+			return err
 		}
-		return nil
-	}, nil)
-	if err != nil {
-		return err
+		err = f.update(c, fk, false)
+		if err != nil {
+			return err
+		}
 	}
 	return subscribe(c, fk, true)
 }
@@ -134,38 +178,49 @@ func addRSS(c appengine.Context, url string) error {
 func addAtom(c appengine.Context, url string) error {
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	fk := datastore.NewKey(c, "feed", url, 0, feedRoot)
-	err := datastore.RunInTransaction(c, func(c appengine.Context) error {
-		done, err := exists(c, fk)
+	done, err := exists(c, fk)
+	if err != nil {
+		return err
+	}
+	if !done {
+		f, err := fetchAtom(c, url)
 		if err != nil {
 			return err
 		}
-		if !done {
-			f, err := fetchAtom(c, url)
-			if err != nil {
-				return err
-			}
-			_, err = datastore.Put(c, fk, f)
-			if err != nil {
-				return err
-			}
-			err = f.update(c, fk)
-			if err != nil {
-				return err
-			}
-			return nil
+		_, err = datastore.Put(c, fk, f)
+		if err != nil {
+			return err
 		}
-		return nil
-	}, nil)
-	if err != nil {
-		return err
+		err = f.update(c, fk, false)
+		if err != nil {
+			return err
+		}
 	}
 	return subscribe(c, fk, true)
 }
 
+func checkURL(c appengine.Context, vals url.Values) error {
+	slice, ok := vals["token"]
+	if !ok {
+		return errors.New("No token provided.")
+	}
+	token, err := base64.URLEncoding.DecodeString(slice[0])
+	if err != nil {
+		return err
+	}
+	return checkUserToken(c, token)
+}
+
 func atomAdder(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	url := r.URL.Query()["url"][0]
-	err := addAtom(c, url)
+	vals := r.URL.Query()
+	err := checkURL(c, vals)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	url := vals["url"][0]
+	err = addAtom(c, url)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -175,8 +230,14 @@ func atomAdder(w http.ResponseWriter, r *http.Request) {
 
 func rssAdder(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	url := r.URL.Query()["url"][0]
-	err := addRSS(c, url)
+	vals := r.URL.Query()
+	err := checkURL(c, vals)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	url := vals["url"][0]
+	err = addRSS(c, url)
 	if err != nil {
 		handleError(w, err)
 		return

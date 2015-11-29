@@ -12,7 +12,6 @@ func handleError(w http.ResponseWriter, err error) {
 
 func init() {
 	http.HandleFunc("/", showAll)
-	http.HandleFunc("/feed/", showFeed)
 	http.HandleFunc("/all/", showAll)
 	http.HandleFunc("/feeds/", lister)
 	http.HandleFunc("/addAtom/", atomAdder)
@@ -22,5 +21,7 @@ func init() {
 	http.HandleFunc("/markUnread/", unreadMarker)
 	http.HandleFunc("/unsubscribe/", unsubscriber)
 	http.HandleFunc("/update/", updater)
+	http.HandleFunc("/getToken/", getToken)
+	http.HandleFunc("/admin/vanity/", vanity)
 
 }

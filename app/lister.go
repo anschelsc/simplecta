@@ -1,6 +1,8 @@
 package app
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"html/template"
 	"net/http"
 	"sort"
@@ -9,42 +11,10 @@ import (
 	"appengine/datastore"
 )
 
-const listerRaw = `
-<html>
-<head>
-  <link rel="stylesheet" href="/static/main.css">
-</head>
-<body>
-<a class="admin" href="/all/">home</a>
-<p>
-
-<form class="newfeed" action="/addAtom/" method="get">
-  <fieldset>
-    <legend>New Atom feed</legend>
-    <input type="text" name="url"> <input type="submit" value="Subscribe">
-  </fieldset>
-</form>
-
-<form class="newfeed" action="/addRSS/" method="get">
-  <fieldset>
-    <legend>New RSS feed</legend>
-    <input type="text" name="url"> <input type="submit" value="Subscribe">
-  </fieldset>
-</form>
-<p>
-
-{{range .}}
-
-
-
-<a class="largefeedlink" href="/feed/?{{.ID }}">{{.Title}}</a> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)<br>
-{{end}}
-</body>
-</html>
-`
+const tLister = "templates/lister"
 
 type feedInfo struct {
-	ID, Title, SubID string
+	Title, SubID, URL string
 }
 
 type feedInfos []*feedInfo
@@ -52,6 +22,17 @@ type feedInfos []*feedInfo
 func (f feedInfos) Len() int           { return len(f) }
 func (f feedInfos) Less(i, j int) bool { return f[i].Title < f[j].Title }
 func (f feedInfos) Swap(i, j int)      { f[i], f[j] = f[j], f[i] }
+
+func randBytes(size int) ([]byte, error) {
+	bs := make([]byte, size)
+	_, err := rand.Read(bs)
+	if err != nil {
+		return nil, err
+	}
+	return bs, nil
+}
+
+const tokenSize = 16
 
 func lister(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
@@ -63,7 +44,7 @@ func lister(w http.ResponseWriter, r *http.Request) {
 		handleError(w, err)
 		return
 	}
-	data := make(feedInfos, 0, fc)
+	feeds := make(feedInfos, 0, fc)
 	iter := q.Run(c)
 	for {
 		var f RSS
@@ -81,19 +62,32 @@ func lister(w http.ResponseWriter, r *http.Request) {
 			handleError(w, err)
 			return
 		}
-		data = append(data, &feedInfo{
-			ID:    k.StringID(),
+		feeds = append(feeds, &feedInfo{
 			Title: f.Title,
 			SubID: sk.Encode(),
+			URL: k.StringID(),
 		})
 	}
-	sort.Sort(data)
-	templ, err := template.New("lister").Parse(listerRaw)
+	sort.Sort(feeds)
+	token, err := randBytes(tokenSize)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	err = templ.Execute(w, data)
+	err = setUserToken(c, token)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	templ, err := template.ParseFiles(tLister, tHead)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+	err = templ.Execute(w, &struct {
+		Token string
+		Feeds feedInfos
+	}{base64.URLEncoding.EncodeToString(token), feeds})
 	if err != nil {
 		handleError(w, err)
 		return

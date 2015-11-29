@@ -1,19 +1,18 @@
 package app
 
 import (
-	"bytes"
 	"encoding/xml"
 	"fmt"
 	"net/http"
 
 	"appengine"
 	"appengine/datastore"
-	"appengine/mail"
+	"appengine/delay"
 	"appengine/urlfetch"
-	"appengine/user"
 )
 
-func updateFeed(c appengine.Context, cl *http.Client, fk *datastore.Key) error {
+var updateFeed = delay.Func("updateFeed", func(c appengine.Context, fk *datastore.Key) error {
+	cl := urlfetch.Client(c)
 	resp, err := cl.Get(fk.StringID())
 	if err != nil {
 		return err
@@ -31,58 +30,64 @@ func updateFeed(c appengine.Context, cl *http.Client, fk *datastore.Key) error {
 		if err != nil {
 			return err
 		}
-		return afeed.update(c, fk)
+		return afeed.update(c, fk, true)
 	} else {
 		err = decoder.Decode(&rfeed)
 		if err != nil {
 			return err
 		}
-		return rfeed.update(c, fk)
+		return rfeed.update(c, fk, true)
 	}
 	panic("unreachable")
-}
+})
 
 func updater(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
-	cl := urlfetch.Client(c)
 	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
 	q := datastore.NewQuery("feed").Ancestor(feedRoot).KeysOnly()
-	iter := q.Run(c)
-	ch := make(chan error)
-	count := 0
-	for {
-		fk, err := iter.Next(c)
-		if err == datastore.Done {
-			break
-		}
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		go func(fk *datastore.Key) {
-			err = updateFeed(c, cl, fk)
-			ch <- err
-		}(fk)
-		count++
-	}
-	buf := new(bytes.Buffer)
-	for count != 0 {
-		err := <-ch
-		if err != nil {
-			fmt.Fprintln(buf, <-ch)
-		}
-		count--
-	}
-	fmt.Fprintf(buf, "User: %s\n", user.Current(c))
-	err := mail.Send(c, &mail.Message{
-		Sender:  "updates@simplecta.appspotmail.com",
-		To:      []string{"anschelsc@gmail.com"},
-		Subject: "Errors from simplecta update",
-		Body:    buf.String(),
-	})
+	cu, err := q.Run(c).Cursor()
 	if err != nil {
 		handleError(w, err)
 		return
 	}
-	fmt.Fprintln(w, "Done.")
+	updateBatch.Call(c, cu.String())
+	fmt.Fprintln(w, "Dispatched.")
+}
+
+var (
+	updateBatch *delay.Function
+)
+
+func init() {
+	updateBatch = delay.Func("updateBatch", ubFunc)
+}
+
+func ubFunc(c appengine.Context, cuS string) error {
+	cu, err := datastore.DecodeCursor(cuS)
+	if err != nil {
+		return err
+	}
+	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+	q := datastore.NewQuery("feed").Ancestor(feedRoot).KeysOnly().Start(cu)
+	iter := q.Run(c)
+	done := false
+	for i := 0; i < 100; i++ {
+		fk, err := iter.Next(c)
+		if err == datastore.Done {
+			done = true
+			break
+		}
+		if err != nil {
+			return err
+		}
+		updateFeed.Call(c, fk)
+	}
+	if !done {
+		cu, err = iter.Cursor()
+		if err != nil {
+			return err
+		}
+		updateBatch.Call(c, cu.String())
+	}
+	return nil
 }

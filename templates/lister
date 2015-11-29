@@ -1,0 +1,38 @@
+<html>
+<head>
+{{template "head"}}
+<script type="text/javascript" src="/static/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="/static/lister.js"></script>
+</head>
+<body>
+<a class="admin" href="/all/">home</a>
+<p>
+
+<form class="newfeed" action="/addAtom/" method="get">
+  <fieldset>
+    <legend>New Atom feed</legend>
+    <input type="text" name="url"> <input type="submit" value="Subscribe">
+    <input type="hidden" name="token" value="{{.Token}}">
+  </fieldset>
+</form>
+
+<form class="newfeed" action="/addRSS/" method="get">
+  <fieldset>
+    <legend>New RSS feed</legend>
+    <input type="text" name="url"> <input type="submit" value="Subscribe">
+    <input type="hidden" name="token" value="{{.Token}}">
+  </fieldset>
+</form>
+<p>
+
+{{range .Feeds}}
+
+
+
+<span class="largefeedlink" title="{{.URL}}">{{.Title}}</span> (<a class="peek" href="/unsubscribe/?{{.SubID}}">unsubscribe</a>)
+<button class="ajax_link">show feed URL</button>
+<span hidden class="feed_url">{{.URL}}</span>
+<br>
+{{end}}
+</body>
+</html>

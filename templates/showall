@@ -1,0 +1,24 @@
+<html>
+<head data-client={{.Client}}>
+{{template "head"}}
+<script type="text/javascript" src="/static/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="/_ah/channel/jsapi"></script>
+<script type="text/javascript" src="/static/showall.js"></script>
+</head>
+<body>
+
+{{.Me}}
+  <a class="admin" href="{{.Logout}}">log out</a> |
+  <a class="admin" href="/feeds/">manage subscriptions</a> |
+  <a class="admin" href="http://github.com/anschelsc/simplecta">fork me on github</a>
+<br>
+
+<p>
+
+{{$client := .Client}}
+{{range $index, $item := .Infos}}
+<div class="item"><span class="feedlink">{{.FeedTitle}}</span>
+<div class="item_links"><a class="read_link" href="/read/?key={{.Key}}&link={{.ItemLink}}&index={{$index}}&client={{$client}}">{{.ItemTitle}}</a> <a class="peek" href="{{.ItemLink}}">(peek)</a> <button class="ajax_link" data-mark="read" data-key="{{.Key}}" data-index="{{$index}}" data-client="{{$client}}">mark read</button></div></div>
+{{end}}
+</body>
+</html>

@@ -1,12 +1,34 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"appengine"
+	"appengine/channel"
 	"appengine/datastore"
 )
+
+type alert struct {
+	Ind  string
+	Read bool
+}
+
+func markAlert(c appengine.Context, raw_key string, read bool, client, ind string) error {
+	err := mark(c, raw_key, read)
+	if err != nil {
+		return err
+	}
+	return channel.SendJSON(c, client, &alert{Ind: ind, Read: read})
+}
+
+func markAllRead(c appengine.Context) error {
+	q := datastore.NewQuery("subscribedItem").Ancestor(userKey(c)).KeysOnly()
+	keys, err := q.GetAll(c, nil)
+	if err != nil {
+		return err
+	}
+	return datastore.DeleteMulti(c, keys)
+}
 
 func mark(c appengine.Context, raw_key string, read bool) error {
 	sk, err := datastore.DecodeKey(raw_key)
@@ -30,32 +52,34 @@ func mark(c appengine.Context, raw_key string, read bool) error {
 }
 
 func reader(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	err := mark(c, r.URL.Query()["key"][0], true)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	link := r.URL.Query()["link"][0]
-	http.Redirect(w, r, link, http.StatusFound)
+	http.Redirect(w, r, r.FormValue("link"), http.StatusFound)
+	wrMark(w, r, true)
 }
 
 func readMarker(w http.ResponseWriter, r *http.Request) {
-	c := appengine.NewContext(r)
-	err := mark(c, r.URL.RawQuery, true)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	fmt.Fprintf(w, "OK")
+	wrMark(w, r, true)
 }
 
 func unreadMarker(w http.ResponseWriter, r *http.Request) {
+	wrMark(w, r, false)
+}
+
+func wrMark(w http.ResponseWriter, r *http.Request, read bool) {
 	c := appengine.NewContext(r)
-	err := mark(c, r.URL.RawQuery, false)
+	key := r.FormValue("key")
+	client := r.FormValue("client")
+	index := r.FormValue("index")
+	err := markAlert(c, key, read, client, index)
 	if err != nil {
 		handleError(w, err)
-		return
 	}
-	fmt.Fprintf(w, "OK")
+}
+
+func allMarker(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	err := markAllRead(c)
+	if err != nil {
+		handleError(w, err)
+	}
+	http.Redirect(w, r, "/", http.StatusFound)
 }

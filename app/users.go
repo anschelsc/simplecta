@@ -1,12 +1,15 @@
 package app
 
 import (
+	"bytes"
+	"errors"
 	"net/http"
 	"time"
 
 	"appengine"
 	"appengine/datastore"
 	"appengine/delay"
+	"appengine/memcache"
 	"appengine/user"
 )
 
@@ -34,20 +37,18 @@ func subscribe(c appengine.Context, fk *datastore.Key, populate bool) error {
 	if !populate {
 		return nil
 	}
-	iter := datastore.NewQuery("item").Ancestor(fk).Order("-PubDate").Limit(10).Run(c)
-	var k *datastore.Key
-	var it Item
-	for k, err = iter.Next(&it); err == nil; k, err = iter.Next(&it) {
-		si := subscribedItem{it.PubDate}
-		_, err = datastore.Put(c, datastore.NewKey(c, "subscribedItem", k.Encode(), 0, uk), &si)
-		if err != nil {
-			return err
-		}
+	feedRoot := datastore.NewKey(c, "feedRoot", "feedRoot", 0, nil)
+	recentKey := datastore.NewKey(c, "recent", fk.StringID(), 0, feedRoot)
+	var re Recent
+	err = datastore.Get(c, recentKey, &re)
+	if err == datastore.ErrNoSuchEntity {
+		return nil
 	}
-	if err != datastore.Done {
+	if err != nil {
 		return err
 	}
-	return nil
+	_, err = datastore.Put(c, datastore.NewKey(c, "subscribedItem", re.Item.Encode(), 0, uk), &subscribedItem{re.PubDate})
+	return err
 }
 
 var propagate = delay.Func("propagate", func(c appengine.Context, ik *datastore.Key) error {
@@ -114,4 +115,47 @@ func unsubscriber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/feeds/", http.StatusFound)
+}
+
+type Token struct {
+	token []byte
+}
+
+func setUserToken(c appengine.Context, token []byte) error {
+	uk := userKey(c)
+	uid := user.Current(c).ID
+	key := datastore.NewKey(c, "userToken", "userToken", 0, uk)
+	_, err := datastore.Put(c, key, &Token{token})
+	if err != nil {
+		return err
+	}
+	_ = memcache.Set(c, &memcache.Item{Key: uid + "_token", Value: token})
+	// Don't check the error on memcache.Set; if it didn't work, oh well
+	return nil
+}
+
+func checkUserToken(c appengine.Context, token []byte) error {
+	uid := user.Current(c).ID
+	it, err := memcache.Get(c, uid+"_token")
+	if err == nil {
+		if bytes.Equal(token, it.Value) {
+			return nil
+		}
+		return errors.New("Bad token.")
+	}
+	// memcache failed, try datastore
+	uk := userKey(c)
+	key := datastore.NewKey(c, "userToken", "userToken", 0, uk)
+	var t Token
+	err = datastore.Get(c, key, &t)
+	if err == datastore.ErrNoSuchEntity {
+		return errors.New("No token for this user.")
+	}
+	if err != nil {
+		return err
+	}
+	if bytes.Equal(token, t.token) {
+		return nil
+	}
+	return errors.New("Bad token")
 }
