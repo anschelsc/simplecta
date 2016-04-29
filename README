@@ -1,0 +1,5 @@
+This should run in Google App Engine--or in the development app server--with no 
+changes except to the name in app.yaml.
+
+Documentation is mostly nonexistent, but feel free to get in touch 
+(anschelsc@gmail.com) with any questions.
